@@ -41,15 +41,6 @@
   .dot.live { background: var(--live); animation: pulse 1.5s infinite; }
   .dot.green { background: var(--green); }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
-  .player-badge { background: var(--card2); border: 1px solid var(--border); border-radius: 20px; padding: .3rem .8rem; font-size: .8rem; cursor: pointer; display: flex; align-items: center; gap: .4rem; position: relative; user-select: none; }
-  .player-badge:hover { border-color: var(--gold); }
-  .player-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: var(--card2); border: 1px solid var(--gold); border-radius: 12px; min-width: 160px; overflow: hidden; z-index: 200; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
-  .player-dropdown-item { padding: .65rem 1rem; font-size: .85rem; cursor: pointer; display: flex; align-items: center; gap: .5rem; transition: background .15s; white-space: nowrap; }
-  .player-dropdown-item:hover { background: rgba(240,180,41,.1); }
-  .player-dropdown-item.active { color: var(--gold); font-weight: 700; }
-  .player-dropdown-item + .player-dropdown-item { border-top: 1px solid var(--border); }
-  .player-dropdown-empty { padding: .65rem 1rem; font-size: .82rem; color: var(--muted); }
-
   nav { background: var(--card); border-bottom: 1px solid var(--border); }
   .tabs { max-width: 1400px; margin: 0 auto; display: flex; padding: 0 1.5rem; overflow-x: auto; }
   .tab { padding: .9rem 1.4rem; font-size: .9rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all .2s; }
@@ -104,7 +95,6 @@
   .tip-section-title { font-size: .75rem; color: var(--muted); margin-bottom: .6rem; text-transform: uppercase; letter-spacing: .5px; }
   .tips-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
   .tip-player-block { display: flex; align-items: center; gap: .4rem; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: .3rem .5rem; }
-  .tip-player-block.is-me { border-color: var(--gold2); }
   .tip-player-name { font-size: .75rem; color: var(--muted); min-width: 60px; }
   .tip-input-group { display: flex; align-items: center; gap: .3rem; }
   .tip-input { width: 42px; text-align: center; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: .25rem; font-size: .9rem; font-weight: 700; outline: none; }
@@ -127,6 +117,8 @@
   .standings-table tr:hover td { background: rgba(255,255,255,.03); }
   .rank-1 { color: var(--gold); font-weight: 900; }
   .rank-2 { color: #c0c0c0; font-weight: 700; }
+  .rank-3 { color: #cd7f32; font-weight: 700; }
+  .pts-cell { font-weight: 900; color: var(--gold); }
   .detail-player { border: 1px solid var(--border); border-radius: 10px; margin-bottom: .75rem; overflow: hidden; }
   .detail-player-header { display: flex; justify-content: space-between; align-items: center; padding: .7rem 1rem; background: var(--card2); cursor: pointer; user-select: none; font-weight: 700; color: var(--gold); }
   .detail-player-header:hover { background: rgba(255,255,255,.05); }
@@ -137,8 +129,6 @@
   .detail-tip-row { display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; border-radius: 6px; font-size: .82rem; flex-wrap: wrap; }
   .detail-tip-row:nth-child(odd) { background: rgba(255,255,255,.02); }
   .detail-tip-date { color: var(--muted); font-size: .75rem; min-width: 80px; }
-  .rank-3 { color: #cd7f32; font-weight: 700; }
-  .pts-cell { font-weight: 900; color: var(--gold); }
 
   .bracket-wrap { overflow-x: auto; padding: 1rem 0; }
   .bracket { display: flex; gap: 0; min-width: 900px; }
@@ -164,7 +154,6 @@
   .form-select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .6rem .8rem; font-size: .9rem; outline: none; cursor: pointer; }
   .players-list { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; max-height: 220px; overflow-y: auto; }
   .player-item { display: flex; align-items: center; justify-content: space-between; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: .5rem .75rem; }
-  .player-item.active-player { border-color: var(--gold); }
   .player-item-name { font-weight: 600; font-size: .9rem; }
   .player-item-actions { display: flex; gap: .4rem; }
 
@@ -230,7 +219,6 @@
     .title-block p { display: none; }
     .refresh-indicator { display: none; }
     .realtime-badge { display: none !important; }
-    .player-badge { padding: .25rem .6rem; font-size: .75rem; }
 
     /* Tabs */
     .tabs { padding: 0 .25rem; }
@@ -549,7 +537,6 @@ const state = {
   standings: null,
   filters: { status: 'all', stage: 'all', search: '' },
   players: [],
-  activePlayer: Store.get('activePlayer') || null,
   tips: {},
   apiKey: Store.get('apiKey') || 'bd84f055712945aa9ec3e7dbf677c9ac',
   refreshInterval: Store.get('refreshInterval') || 60,
@@ -734,7 +721,6 @@ function switchTab(id) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-'+id))
 }
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)))
-document.addEventListener('click', () => closePlayerDropdown())
 
 // ============================================================
 // FILTERS
@@ -843,7 +829,6 @@ function renderMatchCard(match) {
         ${state.players.map(p => {
           const saved = getSavedTip(match.id, p)
           const pts = saved && finalScore ? calcPoints(saved, finalScore) : null
-          const isMe = p === state.activePlayer
           const ptsHTML = pts !== null ? `<span class="tip-points ${pts===3?'pts-3':pts===1?'pts-1':'pts-0'}">${pts}pt</span>` : ''
           if (isFinished) {
             const tipText = saved ? `<strong>${saved.home} – ${saved.away}</strong>` : `<span style="color:var(--muted)">–</span>`
@@ -857,7 +842,7 @@ function renderMatchCard(match) {
               </div>
             </div>`
           }
-          return `<div class="tip-player-block ${isMe?'is-me':''}">
+          return `<div class="tip-player-block">
             <span class="tip-player-name">${p}</span>
             <div class="tip-input-group">
               <input type="number" class="tip-input" min="0" max="99" value="${saved?.home??''}"
@@ -1164,7 +1149,6 @@ async function addPlayer() {
   try {
     await dbAddPlayer(name)
     state.players.push(name)
-    if (!state.activePlayer) setActivePlayer(name)
     input.value = ''
     renderPlayersSettings()
     renderMatches()
@@ -1179,62 +1163,10 @@ async function removePlayer(name) {
   try {
     await dbRemovePlayer(name)
     state.players = state.players.filter(p=>p!==name)
-    if (state.activePlayer===name) {
-      state.activePlayer = state.players[0]||null
-      Store.set('activePlayer', state.activePlayer)
-    }
     renderPlayersSettings()
     renderMatches()
-    updateActivePlayerLabel()
     showToast(`${name} törölve`)
   } catch(e) { showToast(`❌ Hiba: ${e.message}`) }
-}
-
-function setActivePlayer(name) {
-  state.activePlayer = name
-  Store.set('activePlayer', name)
-  renderPlayersSettings()
-  updateActivePlayerLabel()
-  renderMatches()
-  showToast(`👤 Aktív: ${name}`)
-}
-
-function togglePlayerDropdown(e) {
-  e.stopPropagation()
-  const dd = document.getElementById('player-dropdown')
-  if (dd.style.display === 'none') openPlayerDropdown()
-  else closePlayerDropdown()
-}
-
-function openPlayerDropdown() {
-  const dd = document.getElementById('player-dropdown')
-  if (!state.players.length) {
-    dd.innerHTML = `<div class="player-dropdown-empty">Nincs játékos – add hozzá a Beállításokban</div>`
-  } else {
-    dd.innerHTML = state.players.map(p => `
-      <div class="player-dropdown-item ${p===state.activePlayer?'active':''}" onclick="selectPlayerFromDropdown('${p.replace(/'/g,"\\'")}')">
-        ${p===state.activePlayer?'▶ ':''} ${p}
-      </div>`).join('')
-  }
-  dd.style.display = 'block'
-}
-
-function closePlayerDropdown() {
-  document.getElementById('player-dropdown').style.display = 'none'
-}
-
-function selectPlayerFromDropdown(name) {
-  setActivePlayer(name)
-  closePlayerDropdown()
-}
-
-function switchPlayerPrompt() {
-  openPlayerDropdown()
-}
-
-function updateActivePlayerLabel() {
-  const el = document.getElementById('active-player-label')
-  if (el) el.textContent = state.activePlayer || 'Válassz játékost'
 }
 
 function renderPlayersSettings() {
@@ -1244,10 +1176,9 @@ function renderPlayersSettings() {
     return
   }
   list.innerHTML = state.players.map(p=>`
-    <div class="player-item ${p===state.activePlayer?'active-player':''}">
-      <span class="player-item-name">${p===state.activePlayer?'▶ ':''}${p}</span>
+    <div class="player-item">
+      <span class="player-item-name">${p}</span>
       <div class="player-item-actions">
-        <button class="btn secondary small" onclick="setActivePlayer('${p.replace(/'/g,"\\'")}')">Aktív</button>
         <button class="btn danger small" onclick="removePlayer('${p.replace(/'/g,"\\'")}')">✕</button>
       </div>
     </div>`).join('')
@@ -1296,9 +1227,8 @@ async function confirmClearAll() {
   if (!confirm('Biztosan törlöd az összes adatot (játékosok + tippek)?')) return
   try {
     await dbDeleteAll()
-    state.tips={}; state.players=[]; state.activePlayer=null
-    Store.set('activePlayer', null)
-    renderPlayersSettings(); renderMatches(); renderStandings(); updateActivePlayerLabel()
+    state.tips={}; state.players=[]
+    renderPlayersSettings(); renderMatches(); renderStandings()
     showToast('Minden adat törölve.')
   } catch(e) { showToast(`❌ ${e.message}`) }
 }
@@ -1321,7 +1251,6 @@ async function init() {
   if (state.apiKey) document.getElementById('api-key-input').value = state.apiKey
   const sel = document.getElementById('refresh-interval-select')
   if (sel) sel.value = state.refreshInterval
-  updateActivePlayerLabel()
 
   // Supabase adatok betöltése
   const dbStatus = document.getElementById('db-status')
