@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIFA VB 2026 â€“ Tippverseny</title>
+<title>FIFA VB 2026 – Tippverseny</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -338,7 +338,7 @@
         <rect x="113" y="140" width="21" height="5" rx="2.5" fill="#006847"/>
 
         <!-- Stars -->
-        <text x="100" y="160" text-anchor="middle" font-size="12" fill="#F0B429" font-family="Arial">â… â… â… â… â…</text>
+        <text x="100" y="160" text-anchor="middle" font-size="12" fill="#F0B429" font-family="Arial">★ ★ ★ ★ ★</text>
 
         <!-- FIFA WORLD CUP text -->
         <text x="100" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="9" fill="#C8A030" letter-spacing="2">FIFA WORLD CUP</text>
@@ -349,13 +349,13 @@
     </div>
     <div class="title-block">
       <h1>FIFA VB 2026</h1>
-      <p>Tippverseny â€“ USA â€˘ Kanada â€˘ MexikĂł</p>
+      <p>Tippverseny – USA • Kanada • Mexikó</p>
     </div>
     <div class="header-right">
-      <div class="realtime-badge" id="realtime-badge" style="display:none">â—Ź Ă‰lĹ‘ szinkron</div>
+      <div class="realtime-badge" id="realtime-badge" style="display:none">● Élő szinkron</div>
       <div class="refresh-indicator">
         <div class="dot" id="refresh-dot"></div>
-        <span id="refresh-text">â€“</span>
+        <span id="refresh-text">–</span>
       </div>
 
     </div>
@@ -364,11 +364,11 @@
 
 <nav>
   <div class="tabs">
-    <div class="tab active" data-tab="tips">âš˝ Tippek</div>
-    <div class="tab" data-tab="standings">đźŹ† PontszĂˇmok</div>
-    <div class="tab" data-tab="groups">đź“Š Csoportok</div>
-    <div class="tab" data-tab="bracket">đź”± Ăgdiagram</div>
-    <div class="tab" data-tab="settings">âš™ď¸Ź BeĂˇllĂ­tĂˇsok</div>
+    <div class="tab active" data-tab="tips">⚽ Tippek</div>
+    <div class="tab" data-tab="standings">🏆 Pontszámok</div>
+    <div class="tab" data-tab="groups">📊 Csoportok</div>
+    <div class="tab" data-tab="bracket">🔱 Ágdiagram</div>
+    <div class="tab" data-tab="settings">⚙️ Beállítások</div>
   </div>
 </nav>
 
@@ -377,46 +377,46 @@
   <!-- TIPPEK -->
   <div class="tab-content active" id="tab-tips">
     <div id="api-notice-tips" class="api-notice" style="display:none">
-      <h2>đź”‘ API kulcs szĂĽksĂ©ges</h2>
-      <p>A meccsinformĂˇciĂłkhoz ingyenes API kulcs kell a <a href="https://www.football-data.org/client/register" target="_blank">football-data.org</a> oldalrĂłl.</p>
-      <button class="btn" style="margin-top:1rem" onclick="switchTab('settings')">âš™ď¸Ź BeĂˇllĂ­tĂˇsok</button>
+      <h2>🔑 API kulcs szükséges</h2>
+      <p>A meccsinformációkhoz ingyenes API kulcs kell a <a href="https://www.football-data.org/client/register" target="_blank">football-data.org</a> oldalról.</p>
+      <button class="btn" style="margin-top:1rem" onclick="switchTab('settings')">⚙️ Beállítások</button>
     </div>
     <div id="tips-filters" class="filters" style="display:none">
       <div class="filter-group" id="status-filters">
-        <button class="filter-btn active" data-filter="status" data-value="all">Ă–sszes</button>
-        <button class="filter-btn" data-filter="status" data-value="SCHEDULED">KĂ¶zelgĹ‘</button>
-        <button class="filter-btn" data-filter="status" data-value="LIVE">đź”´ Ă‰lĹ‘</button>
+        <button class="filter-btn active" data-filter="status" data-value="all">Összes</button>
+        <button class="filter-btn" data-filter="status" data-value="SCHEDULED">Közelgő</button>
+        <button class="filter-btn" data-filter="status" data-value="LIVE">🔴 Élő</button>
         <button class="filter-btn" data-filter="status" data-value="FINISHED">Befejezett</button>
       </div>
       <div class="filter-group" id="stage-filters"></div>
-      <input type="text" class="search-input" id="team-search" placeholder="đź”Ť Csapat keresĂ©se..." oninput="applyFilters()">
+      <input type="text" class="search-input" id="team-search" placeholder="🔍 Csapat keresése..." oninput="applyFilters()">
     </div>
-    <div id="matches-loading" class="loading"><div class="spinner"></div>Meccsek betĂ¶ltĂ©se...</div>
+    <div id="matches-loading" class="loading"><div class="spinner"></div>Meccsek betöltése...</div>
     <div id="matches-error" class="error-msg" style="display:none"></div>
     <div id="matches-container" class="matches-grid" style="display:none"></div>
-    <div id="no-matches" style="display:none;text-align:center;padding:3rem;color:var(--muted);">Nincs talĂˇlat.</div>
+    <div id="no-matches" style="display:none;text-align:center;padding:3rem;color:var(--muted);">Nincs találat.</div>
   </div>
 
-  <!-- PONTSZĂMOK -->
+  <!-- PONTSZÁMOK -->
   <div class="tab-content" id="tab-standings">
     <div class="standings-header">
-      <h2>đźŹ† Tippverseny ĂˇllĂˇsa</h2>
-      <div style="font-size:.8rem;color:var(--muted);">Pontos eredmĂ©ny = 3pt &nbsp;|&nbsp; Helyes vĂ©geredmĂ©ny = 1pt</div>
+      <h2>🏆 Tippverseny állása</h2>
+      <div style="font-size:.8rem;color:var(--muted);">Pontos eredmény = 3pt &nbsp;|&nbsp; Helyes végeredmény = 1pt</div>
     </div>
     <div class="standings-table">
       <table>
         <thead><tr>
-          <th>#</th><th>JĂˇtĂ©kos</th><th>Pont</th><th>Pontos tipp</th><th>Helyes vĂ©ge</th><th>Ă–sszes tipp</th>
+          <th>#</th><th>Játékos</th><th>Pont</th><th>Pontos tipp</th><th>Helyes vége</th><th>Összes tipp</th>
         </tr></thead>
         <tbody id="standings-body"></tbody>
       </table>
     </div>
     <div style="margin-top:2rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-        <h3 style="color:var(--gold);margin:0;">RĂ©szletes tippek</h3>
+        <h3 style="color:var(--gold);margin:0;">Részletes tippek</h3>
         <button onclick="exportToExcel()" style="display:flex;align-items:center;gap:.5rem;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='var(--card2)'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          ExportĂˇlĂˇs (.xlsx)
+          Exportálás (.xlsx)
         </button>
       </div>
       <div id="tips-detail"></div>
@@ -426,34 +426,34 @@
   <!-- CSOPORTOK -->
   <div class="tab-content" id="tab-groups">
     <div style="margin-bottom:1.5rem">
-      <h2 style="color:var(--gold);font-size:1.3rem;">đź“Š Csoport tĂˇblĂˇzatok</h2>
+      <h2 style="color:var(--gold);font-size:1.3rem;">📊 Csoport táblázatok</h2>
     </div>
-    <div id="groups-loading" class="loading"><div class="spinner"></div>BetĂ¶ltĂ©s...</div>
+    <div id="groups-loading" class="loading"><div class="spinner"></div>Betöltés...</div>
     <div id="groups-container" class="groups-grid" style="display:none"></div>
   </div>
 
-  <!-- ĂGDIAGRAM -->
+  <!-- ÁGDIAGRAM -->
   <div class="tab-content" id="tab-bracket">
     <div style="margin-bottom:1.5rem">
-      <h2 style="color:var(--gold);font-size:1.3rem;margin-bottom:.3rem;">đź”± KiesĂ©ses szakasz</h2>
-      <p style="font-size:.8rem;color:var(--muted);">Automatikusan frissĂĽl az API adatai alapjĂˇn.</p>
+      <h2 style="color:var(--gold);font-size:1.3rem;margin-bottom:.3rem;">🔱 Kieséses szakasz</h2>
+      <p style="font-size:.8rem;color:var(--muted);">Automatikusan frissül az API adatai alapján.</p>
     </div>
-    <div id="bracket-loading" class="loading"><div class="spinner"></div>BetĂ¶ltĂ©s...</div>
+    <div id="bracket-loading" class="loading"><div class="spinner"></div>Betöltés...</div>
     <div id="bracket-container" class="bracket-wrap" style="display:none">
       <div class="bracket" id="bracket-inner"></div>
     </div>
     <div id="bracket-placeholder" style="display:none;text-align:center;padding:3rem;color:var(--muted);">
-      <div style="font-size:3rem;margin-bottom:1rem;">đźŹ†</div>
-      <div>A kiesĂ©ses szakasz a csoportkĂ¶r utĂˇn jelenik meg.</div>
+      <div style="font-size:3rem;margin-bottom:1rem;">🏆</div>
+      <div>A kieséses szakasz a csoportkör után jelenik meg.</div>
     </div>
   </div>
 
-  <!-- BEĂLLĂŤTĂSOK -->
+  <!-- BEÁLLÍTÁSOK -->
   <div class="tab-content" id="tab-settings">
     <div class="settings-grid">
 
       <div class="settings-card">
-        <h3>đź”‘ Football API kulcs</h3>
+        <h3>🔑 Football API kulcs</h3>
         <div class="form-group">
           <label>football-data.org API kulcs</label>
           <input type="password" class="form-input" id="api-key-input" placeholder="API kulcs...">
@@ -462,59 +462,59 @@
           Ingyenes kulcs: <a href="https://www.football-data.org/client/register" target="_blank" style="color:var(--blue)">football-data.org</a>
         </p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-          <button class="btn" onclick="saveApiKey()">đź’ľ MentĂ©s</button>
-          <button class="btn secondary" onclick="testApiKey()">đź§Ş TesztelĂ©s</button>
+          <button class="btn" onclick="saveApiKey()">💾 Mentés</button>
+          <button class="btn secondary" onclick="testApiKey()">🧪 Tesztelés</button>
         </div>
         <div id="api-test-result" style="margin-top:.75rem;font-size:.85rem;"></div>
-        <button class="btn secondary small" style="margin-top:.5rem" onclick="showTeamDebug()">đź”Ť Csapat debug</button>
+        <button class="btn secondary small" style="margin-top:.5rem" onclick="showTeamDebug()">🔍 Csapat debug</button>
         <pre id="team-debug" style="display:none;margin-top:.75rem;font-size:.72rem;background:var(--bg);padding:.75rem;border-radius:8px;overflow:auto;max-height:200px;color:var(--muted)"></pre>
       </div>
 
       <div class="settings-card">
-        <h3>đź‘Ą JĂˇtĂ©kosok</h3>
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">A jĂˇtĂ©kosok Ă©s tippek minden rĂ©sztvevĹ‘nĂ©l szinkronizĂˇlĂłdnak.</p>
+        <h3>👥 Játékosok</h3>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">A játékosok és tippek minden résztvevőnél szinkronizálódnak.</p>
         <div class="players-list" id="players-list"></div>
         <div class="form-group">
-          <label>Ăšj jĂˇtĂ©kos neve</label>
+          <label>Új játékos neve</label>
           <div style="display:flex;gap:.5rem;">
-            <input type="text" class="form-input" id="new-player-input" placeholder="JĂˇtĂ©kos neve..." maxlength="30"
+            <input type="text" class="form-input" id="new-player-input" placeholder="Játékos neve..." maxlength="30"
                    onkeydown="if(event.key==='Enter')addPlayer()">
-            <button class="btn" onclick="addPlayer()">âž•</button>
+            <button class="btn" onclick="addPlayer()">➕</button>
           </div>
         </div>
         <div id="db-status" style="font-size:.78rem;color:var(--muted);margin-top:.5rem;"></div>
       </div>
 
       <div class="settings-card">
-        <h3>đź”„ FrissĂ­tĂ©s</h3>
+        <h3>🔄 Frissítés</h3>
         <div class="form-group">
-          <label>MeccsinformĂˇciĂł frissĂ­tĂ©si idĹ‘kĂ¶z</label>
+          <label>Meccsinformáció frissítési időköz</label>
           <select class="form-select" id="refresh-interval-select" onchange="updateRefreshInterval()">
-            <option value="30">30 mĂˇsodperc</option>
+            <option value="30">30 másodperc</option>
             <option value="60" selected>1 perc</option>
             <option value="120">2 perc</option>
             <option value="300">5 perc</option>
           </select>
         </div>
-        <button class="btn secondary" onclick="manualRefresh()">đź”„ Azonnali frissĂ­tĂ©s</button>
+        <button class="btn secondary" onclick="manualRefresh()">🔄 Azonnali frissítés</button>
         <div id="last-refresh-info" style="margin-top:.75rem;font-size:.8rem;color:var(--muted);"></div>
       </div>
 
       <div class="settings-card">
-        <h3>â„ąď¸Ź PontozĂˇs</h3>
+        <h3>ℹ️ Pontozás</h3>
         <div style="font-size:.85rem;color:var(--muted);line-height:2;">
-          <div>đźĄ‡ <strong style="color:var(--text)">3 pont</strong> â€“ Pontos eredmĂ©ny</div>
-          <div>âś… <strong style="color:var(--text)">1 pont</strong> â€“ Helyes vĂ©geredmĂ©ny</div>
-          <div>âťŚ <strong style="color:var(--text)">0 pont</strong> â€“ TĂ©ves tipp</div>
+          <div>🥇 <strong style="color:var(--text)">3 pont</strong> – Pontos eredmény</div>
+          <div>✅ <strong style="color:var(--text)">1 pont</strong> – Helyes végeredmény</div>
+          <div>❌ <strong style="color:var(--text)">0 pont</strong> – Téves tipp</div>
         </div>
       </div>
 
       <div class="settings-card">
-        <h3>đź—‘ď¸Ź Adatok tĂ¶rlĂ©se</h3>
-        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">A tĂ¶rlĂ©s az adatbĂˇzisbĂłl is eltĂˇvolĂ­tja az adatokat!</p>
+        <h3>🗑️ Adatok törlése</h3>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">A törlés az adatbázisból is eltávolítja az adatokat!</p>
         <div style="display:flex;flex-direction:column;gap:.5rem;">
-          <button class="btn danger small" onclick="confirmClearTips()">Ă–sszes tipp tĂ¶rlĂ©se</button>
-          <button class="btn danger small" onclick="confirmClearAll()">Minden adat tĂ¶rlĂ©se</button>
+          <button class="btn danger small" onclick="confirmClearTips()">Összes tipp törlése</button>
+          <button class="btn danger small" onclick="confirmClearAll()">Minden adat törlése</button>
         </div>
       </div>
 
@@ -560,7 +560,7 @@ const state = {
 }
 
 // ============================================================
-// SUPABASE â€“ jĂˇtĂ©kosok
+// SUPABASE – játékosok
 // ============================================================
 async function dbLoadPlayers() {
   const { data, error } = await db.from('players').select('name').eq('room', ROOM).order('created_at')
@@ -579,7 +579,7 @@ async function dbRemovePlayer(name) {
 }
 
 // ============================================================
-// SUPABASE â€“ tippek
+// SUPABASE – tippek
 // ============================================================
 async function dbLoadTips() {
   const { data, error } = await db.from('tips').select('*').eq('room', ROOM)
@@ -702,19 +702,19 @@ async function refreshAll() {
 async function manualRefresh() {
   state.cache = {}
   await refreshAll()
-  showToast('Adatok frissĂ­tve!')
+  showToast('Adatok frissítve!')
 }
 
 function updateRefreshUI(s) {
   const dot = document.getElementById('refresh-dot')
   const txt = document.getElementById('refresh-text')
   const info = document.getElementById('last-refresh-info')
-  if (s === 'loading') { dot.className='dot live'; txt.textContent='FrissĂ­tĂ©s...' }
+  if (s === 'loading') { dot.className='dot live'; txt.textContent='Frissítés...' }
   else if (s === 'ok') {
     const t = state.lastFetch
     dot.className='dot green'
-    txt.textContent = t ? `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}` : 'â€“'
-    if (info) info.textContent = `UtoljĂˇra frissĂ­tve: ${t?.toLocaleTimeString('hu-HU')}`
+    txt.textContent = t ? `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}` : '–'
+    if (info) info.textContent = `Utoljára frissítve: ${t?.toLocaleTimeString('hu-HU')}`
     const hasLive = state.matches.some(m => ['IN_PLAY','PAUSED','LIVE'].includes(m.status))
     if (hasLive) dot.className='dot live'
   } else if (s === 'error') { dot.className='dot'; dot.style.background='var(--red)'; txt.textContent='Hiba' }
@@ -774,10 +774,10 @@ function getFilteredMatches() {
 }
 
 // ============================================================
-// MECCS RENDERELĂ‰S
+// MECCS RENDERELÉS
 // ============================================================
 function teamFlag(team, size = 40) {
-  if (!team) return '<span style="font-size:1.5rem">đźŹłď¸Ź</span>'
+  if (!team) return '<span style="font-size:1.5rem">🏳️</span>'
   if (team.crest) {
     return `<img src="${team.crest}" width="${size}" height="${size}" style="object-fit:contain" alt="${team.shortName||team.name||''}" onerror="this.style.display='none'">`
   }
@@ -785,12 +785,12 @@ function teamFlag(team, size = 40) {
 }
 
 function stageLabel(s) {
-  const m = {'GROUP_STAGE':'CsoportkĂ¶r','LAST_32':'R32','LAST_16':'NyolcaddĂ¶ntĹ‘','QUARTER_FINALS':'NegyeddĂ¶ntĹ‘','SEMI_FINALS':'ElĹ‘dĂ¶ntĹ‘','THIRD_PLACE':'BronzmĂ©rkĹ‘zĂ©s','FINAL':'DĂ¶ntĹ‘'}
+  const m = {'GROUP_STAGE':'Csoportkör','LAST_32':'R32','LAST_16':'Nyolcaddöntő','QUARTER_FINALS':'Negyeddöntő','SEMI_FINALS':'Elődöntő','THIRD_PLACE':'Bronzmérkőzés','FINAL':'Döntő'}
   return m[s] || s
 }
 
 function statusLabel(s) {
-  const m = {'SCHEDULED':'KĂ¶zelgĹ‘','TIMED':'KĂ¶zelgĹ‘','IN_PLAY':'Ă‰lĹ‘','PAUSED':'SzĂĽnet','LIVE':'Ă‰lĹ‘','FINISHED':'KĂ©sz','POSTPONED':'Halasztott','CANCELLED':'TĂ¶rĂ¶lve'}
+  const m = {'SCHEDULED':'Közelgő','TIMED':'Közelgő','IN_PLAY':'Élő','PAUSED':'Szünet','LIVE':'Élő','FINISHED':'Kész','POSTPONED':'Halasztott','CANCELLED':'Törölve'}
   return m[s] || s
 }
 
@@ -799,7 +799,7 @@ function formatMatchTime(utcDate, status) {
   const d = new Date(utcDate), now = new Date()
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1)
   const time = d.toLocaleTimeString('hu-HU', {hour:'2-digit',minute:'2-digit'})
-  if (['IN_PLAY','PAUSED','LIVE'].includes(status)) return 'đź”´ Ă‰lĹ‘'
+  if (['IN_PLAY','PAUSED','LIVE'].includes(status)) return '🔴 Élő'
   if (d.toDateString() === now.toDateString()) return `Ma ${time}`
   if (d.toDateString() === tomorrow.toDateString()) return `Holnap ${time}`
   return d.toLocaleDateString('hu-HU', {month:'short',day:'numeric'}) + ' ' + time
@@ -832,11 +832,11 @@ function renderMatchCard(match) {
   const finalScore = getFinalScore(match)
 
   let scoreHTML = ''
-  if (isFinished && score) scoreHTML = `<div class="score-main">${score.home}â€“${score.away}</div>`
-  else if (isLive && score) scoreHTML = `<div class="score-main">${score.home??0}â€“${score.away??0}</div><div style="font-size:.75rem;color:var(--live)">âŹ± Ă‰lĹ‘</div>`
+  if (isFinished && score) scoreHTML = `<div class="score-main">${score.home}–${score.away}</div>`
+  else if (isLive && score) scoreHTML = `<div class="score-main">${score.home??0}–${score.away??0}</div><div style="font-size:.75rem;color:var(--live)">⏱ Élő</div>`
   else scoreHTML = `<div class="score-vs">vs</div>`
 
-  const tipsHTML = state.players.length === 0 ? `<div class="tip-section"><div style="font-size:.8rem;color:var(--muted);">Adj hozzĂˇ jĂˇtĂ©kosokat a BeĂˇllĂ­tĂˇsok fĂĽlĂ¶n.</div></div>` : `
+  const tipsHTML = state.players.length === 0 ? `<div class="tip-section"><div style="font-size:.8rem;color:var(--muted);">Adj hozzá játékosokat a Beállítások fülön.</div></div>` : `
     <div class="tip-section">
       <div class="tip-section-title">Tippek</div>
       <div class="tips-row">
@@ -846,7 +846,7 @@ function renderMatchCard(match) {
           const isMe = p === state.activePlayer
           const ptsHTML = pts !== null ? `<span class="tip-points ${pts===3?'pts-3':pts===1?'pts-1':'pts-0'}">${pts}pt</span>` : ''
           if (isFinished) {
-            const tipText = saved ? `<strong>${saved.home} â€“ ${saved.away}</strong>` : `<span style="color:var(--muted)">â€“</span>`
+            const tipText = saved ? `<strong>${saved.home} – ${saved.away}</strong>` : `<span style="color:var(--muted)">–</span>`
             const noTipMsg = !saved ? `<span style="font-size:.72rem;color:var(--muted);font-style:italic">nem tippelt</span>` : ''
             return `<div class="tip-player-block">
               <span class="tip-player-name">${p}</span>
@@ -862,12 +862,12 @@ function renderMatchCard(match) {
             <div class="tip-input-group">
               <input type="number" class="tip-input" min="0" max="99" value="${saved?.home??''}"
                 id="tip-${match.id}-${p}-h" ${isLive?'readonly':''}>
-              <span class="tip-sep">â€“</span>
+              <span class="tip-sep">–</span>
               <input type="number" class="tip-input" min="0" max="99" value="${saved?.away??''}"
                 id="tip-${match.id}-${p}-a" ${isLive?'readonly':''}>
-              ${isLive ? `<span style="font-size:.72rem;color:var(--live);font-weight:700;">đź”’ LezĂˇrva</span>` : ''}
+              ${isLive ? `<span style="font-size:.72rem;color:var(--live);font-weight:700;">🔒 Lezárva</span>` : ''}
               ${!isLive ? `<button class="tip-save-btn" onclick="handleSaveTip(${match.id},'${p.replace(/'/g,"\\'")}')">OK</button>` : ''}
-              ${saved && !isLive ? `<span class="tip-saved">âś“</span>` : ''}
+              ${saved && !isLive ? `<span class="tip-saved">✓</span>` : ''}
             </div>
           </div>`
         }).join('')}
@@ -876,7 +876,7 @@ function renderMatchCard(match) {
 
   return `<div class="match-card ${isLive?'live-match':''}">
     <div class="match-header">
-      <span class="match-stage">${stageLabel(match.stage)}${match.group?' Â· '+match.group.replace('GROUP_','')+'cs.':''}</span>
+      <span class="match-stage">${stageLabel(match.stage)}${match.group?' · '+match.group.replace('GROUP_','')+'cs.':''}</span>
       <div style="display:flex;align-items:center;gap:.5rem;">
         <span class="match-time">${formatMatchTime(match.utcDate,match.status)}</span>
         <span class="status-badge status-${match.status}">${statusLabel(match.status)}</span>
@@ -915,7 +915,7 @@ function renderMatches() {
 function showMatchError(msg) {
   const el = document.getElementById('matches-error')
   el.style.display = 'block'
-  el.textContent = `âš ď¸Ź API hiba: ${msg}`
+  el.textContent = `⚠️ API hiba: ${msg}`
   document.getElementById('matches-loading').style.display = 'none'
 }
 
@@ -936,28 +936,28 @@ function buildStageFilters() {
 }
 
 // ============================================================
-// TIP MENTĂ‰S
+// TIP MENTÉS
 // ============================================================
 async function handleSaveTip(matchId, playerName) {
   const hEl = document.getElementById(`tip-${matchId}-${playerName}-h`)
   const aEl = document.getElementById(`tip-${matchId}-${playerName}-a`)
   if (!hEl || !aEl) return
   const h = hEl.value, a = aEl.value
-  if (h===''||a==='') { showToast('Add meg mindkĂ©t Ă©rtĂ©ket!'); return }
+  if (h===''||a==='') { showToast('Add meg mindkét értéket!'); return }
   try {
     await dbSaveTip(matchId, playerName, parseInt(h), parseInt(a))
     if (!state.tips[matchId]) state.tips[matchId] = {}
     state.tips[matchId][playerName] = { home: parseInt(h), away: parseInt(a) }
     renderMatches()
     renderStandings()
-    showToast(`âś… ${playerName}: ${h}â€“${a} mentve`)
+    showToast(`✅ ${playerName}: ${h}–${a} mentve`)
   } catch(e) {
-    showToast(`âťŚ Hiba: ${e.message}`)
+    showToast(`❌ Hiba: ${e.message}`)
   }
 }
 
 // ============================================================
-// PONTSZĂMOK
+// PONTSZÁMOK
 // ============================================================
 function renderStandings() {
   const tbody = document.getElementById('standings-body')
@@ -982,7 +982,7 @@ function renderStandings() {
   const sortedPlayers = [...results].map(r=>r.name)
   document.getElementById('tips-detail').innerHTML = sortedPlayers.map(p => {
     const tm = state.matches.filter(m=>getSavedTip(m.id,p))
-    if (!tm.length) return `<div class="detail-player"><div class="detail-player-header" onclick="toggleDetail(this)"><span>${p} <span style="font-weight:400;color:var(--muted);font-size:.8rem;">â€“ Nincs tipp</span></span><span class="chevron">â–Ľ</span></div></div>`
+    if (!tm.length) return `<div class="detail-player"><div class="detail-player-header" onclick="toggleDetail(this)"><span>${p} <span style="font-weight:400;color:var(--muted);font-size:.8rem;">– Nincs tipp</span></span><span class="chevron">▼</span></div></div>`
     const totalPts = tm.reduce((s,m)=>{ const fs=getFinalScore(m),tip=getSavedTip(m.id,p); return s+(fs&&tip?calcPoints(tip,fs):0) },0)
     const rows = tm.map(m=>{
       const tip=getSavedTip(m.id,p), fs=getFinalScore(m), pts=fs?calcPoints(tip,fs):null
@@ -990,16 +990,16 @@ function renderStandings() {
       const d=m.utcDate?new Date(m.utcDate).toLocaleDateString('hu-HU',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''
       return `<div class="detail-tip-row">
         <span class="detail-tip-date">${d}</span>
-        <span style="flex:1">${h} <strong>${tip.home}â€“${tip.away}</strong> ${a}
-          ${fs?`<span style="color:var(--muted);font-size:.78rem;">(${fs.home}â€“${fs.away})</span>`:''}
+        <span style="flex:1">${h} <strong>${tip.home}–${tip.away}</strong> ${a}
+          ${fs?`<span style="color:var(--muted);font-size:.78rem;">(${fs.home}–${fs.away})</span>`:''}
         </span>
-        ${pts!==null?`<span class="tip-points ${pts===3?'pts-3':pts===1?'pts-1':'pts-0'}">${pts}pt</span>`:'<span style="color:var(--muted);font-size:.75rem;">â€“</span>'}
+        ${pts!==null?`<span class="tip-points ${pts===3?'pts-3':pts===1?'pts-1':'pts-0'}">${pts}pt</span>`:'<span style="color:var(--muted);font-size:.75rem;">–</span>'}
       </div>`
     }).join('')
     return `<div class="detail-player">
       <div class="detail-player-header" onclick="toggleDetail(this)">
-        <span>${p} <span style="font-weight:400;font-size:.8rem;color:var(--muted);">${tm.length} tipp Â· ${totalPts}pt</span></span>
-        <span class="chevron">â–Ľ</span>
+        <span>${p} <span style="font-weight:400;font-size:.8rem;color:var(--muted);">${tm.length} tipp · ${totalPts}pt</span></span>
+        <span class="chevron">▼</span>
       </div>
       <div class="detail-player-body">${rows}</div>
     </div>`
@@ -1015,7 +1015,7 @@ function exportToExcel() {
   })
 
   // Summary sheet
-  const summaryRows = [['#','JĂˇtĂ©kos','Pont','Pontos tipp (3pt)','Helyes vĂ©geredmĂ©ny (1pt)','Ă–sszes tipp']]
+  const summaryRows = [['#','Játékos','Pont','Pontos tipp (3pt)','Helyes végeredmény (1pt)','Összes tipp']]
   sortedPlayers.forEach((p,i) => {
     let pts=0,exact=0,correct=0,total=0
     state.matches.forEach(m => {
@@ -1026,11 +1026,11 @@ function exportToExcel() {
     })
     summaryRows.push([i+1, p, pts, exact, correct, total])
   })
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Ă–sszesĂ­tĹ‘')
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Összesítő')
 
   // One sheet per player
   sortedPlayers.forEach(p => {
-    const rows = [['DĂˇtum','Hazai','VendĂ©g','Tipp (H)','Tipp (V)','VĂ©geredmĂ©ny (H)','VĂ©geredmĂ©ny (V)','Pont']]
+    const rows = [['Dátum','Hazai','Vendég','Tipp (H)','Tipp (V)','Végeredmény (H)','Végeredmény (V)','Pont']]
     state.matches.filter(m=>getSavedTip(m.id,p)).forEach(m => {
       const tip=getSavedTip(m.id,p), fs=getFinalScore(m)
       const d=m.utcDate?new Date(m.utcDate).toLocaleString('hu-HU',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):''
@@ -1064,7 +1064,7 @@ function renderGroups() {
   document.getElementById('groups-loading').style.display = 'none'
   container.style.display = 'grid'
 
-  if (!state.apiKey) { container.innerHTML='<div style="color:var(--muted)">API kulcs szĂĽksĂ©ges.</div>'; return }
+  if (!state.apiKey) { container.innerHTML='<div style="color:var(--muted)">API kulcs szükséges.</div>'; return }
 
   if (state.standings?.length) {
     container.innerHTML = state.standings.map(g => {
@@ -1083,7 +1083,7 @@ function renderGroups() {
     return
   }
 
-  // MeccsekbĹ‘l szĂˇmolt tĂˇblĂˇzat
+  // Meccsekből számolt táblázat
   const groups = {}
   state.matches.filter(m=>m.stage==='GROUP_STAGE').forEach(m=>{
     const g = m.group||'?'
@@ -1116,7 +1116,7 @@ function renderGroups() {
 }
 
 // ============================================================
-// ĂGDIAGRAM
+// ÁGDIAGRAM
 // ============================================================
 function renderBracket() {
   const container = document.getElementById('bracket-container')
@@ -1154,13 +1154,13 @@ function renderBracket() {
 }
 
 // ============================================================
-// JĂTĂ‰KOSOK
+// JÁTÉKOSOK
 // ============================================================
 async function addPlayer() {
   const input = document.getElementById('new-player-input')
   const name = input.value.trim()
   if (!name) return
-  if (state.players.includes(name)) { showToast('Ez a nĂ©v mĂˇr lĂ©tezik!'); return }
+  if (state.players.includes(name)) { showToast('Ez a név már létezik!'); return }
   try {
     await dbAddPlayer(name)
     state.players.push(name)
@@ -1168,14 +1168,14 @@ async function addPlayer() {
     input.value = ''
     renderPlayersSettings()
     renderMatches()
-    showToast(`âś… ${name} hozzĂˇadva`)
+    showToast(`✅ ${name} hozzáadva`)
   } catch(e) {
-    showToast(`âťŚ Hiba: ${e.message}`)
+    showToast(`❌ Hiba: ${e.message}`)
   }
 }
 
 async function removePlayer(name) {
-  if (!confirm(`Biztosan tĂ¶rlĂ¶d: ${name}?`)) return
+  if (!confirm(`Biztosan törlöd: ${name}?`)) return
   try {
     await dbRemovePlayer(name)
     state.players = state.players.filter(p=>p!==name)
@@ -1186,8 +1186,8 @@ async function removePlayer(name) {
     renderPlayersSettings()
     renderMatches()
     updateActivePlayerLabel()
-    showToast(`${name} tĂ¶rĂ¶lve`)
-  } catch(e) { showToast(`âťŚ Hiba: ${e.message}`) }
+    showToast(`${name} törölve`)
+  } catch(e) { showToast(`❌ Hiba: ${e.message}`) }
 }
 
 function setActivePlayer(name) {
@@ -1196,7 +1196,7 @@ function setActivePlayer(name) {
   renderPlayersSettings()
   updateActivePlayerLabel()
   renderMatches()
-  showToast(`đź‘¤ AktĂ­v: ${name}`)
+  showToast(`👤 Aktív: ${name}`)
 }
 
 function togglePlayerDropdown(e) {
@@ -1209,11 +1209,11 @@ function togglePlayerDropdown(e) {
 function openPlayerDropdown() {
   const dd = document.getElementById('player-dropdown')
   if (!state.players.length) {
-    dd.innerHTML = `<div class="player-dropdown-empty">Nincs jĂˇtĂ©kos â€“ add hozzĂˇ a BeĂˇllĂ­tĂˇsokban</div>`
+    dd.innerHTML = `<div class="player-dropdown-empty">Nincs játékos – add hozzá a Beállításokban</div>`
   } else {
     dd.innerHTML = state.players.map(p => `
       <div class="player-dropdown-item ${p===state.activePlayer?'active':''}" onclick="selectPlayerFromDropdown('${p.replace(/'/g,"\\'")}')">
-        ${p===state.activePlayer?'â–¶ ':''} ${p}
+        ${p===state.activePlayer?'▶ ':''} ${p}
       </div>`).join('')
   }
   dd.style.display = 'block'
@@ -1234,32 +1234,32 @@ function switchPlayerPrompt() {
 
 function updateActivePlayerLabel() {
   const el = document.getElementById('active-player-label')
-  if (el) el.textContent = state.activePlayer || 'VĂˇlassz jĂˇtĂ©kost'
+  if (el) el.textContent = state.activePlayer || 'Válassz játékost'
 }
 
 function renderPlayersSettings() {
   const list = document.getElementById('players-list')
   if (!state.players.length) {
-    list.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem;">MĂ©g nincs jĂˇtĂ©kos.</div>`
+    list.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem;">Még nincs játékos.</div>`
     return
   }
   list.innerHTML = state.players.map(p=>`
     <div class="player-item ${p===state.activePlayer?'active-player':''}">
-      <span class="player-item-name">${p===state.activePlayer?'â–¶ ':''}${p}</span>
+      <span class="player-item-name">${p===state.activePlayer?'▶ ':''}${p}</span>
       <div class="player-item-actions">
-        <button class="btn secondary small" onclick="setActivePlayer('${p.replace(/'/g,"\\'")}')">AktĂ­v</button>
-        <button class="btn danger small" onclick="removePlayer('${p.replace(/'/g,"\\'")}')">âś•</button>
+        <button class="btn secondary small" onclick="setActivePlayer('${p.replace(/'/g,"\\'")}')">Aktív</button>
+        <button class="btn danger small" onclick="removePlayer('${p.replace(/'/g,"\\'")}')">✕</button>
       </div>
     </div>`).join('')
 }
 
 // ============================================================
-// BEĂLLĂŤTĂSOK
+// BEÁLLÍTÁSOK
 // ============================================================
 function showTeamDebug() {
   const el = document.getElementById('team-debug')
   const m = state.matches[0]
-  if (!m) { el.textContent = 'Nincs betĂ¶ltĂ¶tt meccs.'; el.style.display='block'; return }
+  if (!m) { el.textContent = 'Nincs betöltött meccs.'; el.style.display='block'; return }
   el.textContent = JSON.stringify({ homeTeam: m.homeTeam, awayTeam: m.awayTeam }, null, 2)
   el.style.display = 'block'
 }
@@ -1269,7 +1269,7 @@ function saveApiKey() {
   if (!key) { showToast('Add meg az API kulcsodat!'); return }
   state.apiKey = key
   Store.set('apiKey', key)
-  showToast('âś… API kulcs mentve!')
+  showToast('✅ API kulcs mentve!')
   state.cache = {}
   refreshAll()
 }
@@ -1278,29 +1278,29 @@ async function testApiKey() {
   const key = document.getElementById('api-key-input').value.trim() || state.apiKey
   if (!key) { showToast('Nincs API kulcs!'); return }
   const result = document.getElementById('api-test-result')
-  result.innerHTML = '<span style="color:var(--muted)">TesztelĂ©s...</span>'
+  result.innerHTML = '<span style="color:var(--muted)">Tesztelés...</span>'
   try {
     const res = await fetch(CORS_PROXY + encodeURIComponent(`${API_BASE}/competitions/${COMP}`), { headers: {'X-Auth-Token':key} })
-    if (res.ok) { const d=await res.json(); result.innerHTML=`<span style="color:var(--green)">âś… OK: ${d.name||'WC 2026'}</span>` }
-    else { const e=await res.json().catch(()=>({})); result.innerHTML=`<span style="color:var(--red)">âťŚ ${e.message||res.status}</span>` }
-  } catch { result.innerHTML=`<span style="color:var(--red)">âťŚ HĂˇlĂłzati hiba</span>` }
+    if (res.ok) { const d=await res.json(); result.innerHTML=`<span style="color:var(--green)">✅ OK: ${d.name||'WC 2026'}</span>` }
+    else { const e=await res.json().catch(()=>({})); result.innerHTML=`<span style="color:var(--red)">❌ ${e.message||res.status}</span>` }
+  } catch { result.innerHTML=`<span style="color:var(--red)">❌ Hálózati hiba</span>` }
 }
 
 async function confirmClearTips() {
-  if (!confirm('Biztosan tĂ¶rlĂ¶d az Ă¶sszes tippet az adatbĂˇzisbĂłl?')) return
-  try { await dbDeleteTips(); state.tips={}; renderMatches(); renderStandings(); showToast('Tippek tĂ¶rĂ¶lve.') }
-  catch(e) { showToast(`âťŚ ${e.message}`) }
+  if (!confirm('Biztosan törlöd az összes tippet az adatbázisból?')) return
+  try { await dbDeleteTips(); state.tips={}; renderMatches(); renderStandings(); showToast('Tippek törölve.') }
+  catch(e) { showToast(`❌ ${e.message}`) }
 }
 
 async function confirmClearAll() {
-  if (!confirm('Biztosan tĂ¶rlĂ¶d az Ă¶sszes adatot (jĂˇtĂ©kosok + tippek)?')) return
+  if (!confirm('Biztosan törlöd az összes adatot (játékosok + tippek)?')) return
   try {
     await dbDeleteAll()
     state.tips={}; state.players=[]; state.activePlayer=null
     Store.set('activePlayer', null)
     renderPlayersSettings(); renderMatches(); renderStandings(); updateActivePlayerLabel()
-    showToast('Minden adat tĂ¶rĂ¶lve.')
-  } catch(e) { showToast(`âťŚ ${e.message}`) }
+    showToast('Minden adat törölve.')
+  } catch(e) { showToast(`❌ ${e.message}`) }
 }
 
 // ============================================================
@@ -1323,16 +1323,16 @@ async function init() {
   if (sel) sel.value = state.refreshInterval
   updateActivePlayerLabel()
 
-  // Supabase adatok betĂ¶ltĂ©se
+  // Supabase adatok betöltése
   const dbStatus = document.getElementById('db-status')
   try {
-    dbStatus.textContent = 'âŹł AdatbĂˇzis csatlakozĂˇs...'
+    dbStatus.textContent = '⏳ Adatbázis csatlakozás...'
     state.players = await dbLoadPlayers()
     state.tips = await dbLoadTips()
-    dbStatus.textContent = `âś… AdatbĂˇzis kapcsolĂłdva (${state.players.length} jĂˇtĂ©kos)`
+    dbStatus.textContent = `✅ Adatbázis kapcsolódva (${state.players.length} játékos)`
     subscribeRealtime()
   } catch(e) {
-    dbStatus.innerHTML = `<span style="color:var(--red)">âťŚ DB hiba: ${e.message}</span>`
+    dbStatus.innerHTML = `<span style="color:var(--red)">❌ DB hiba: ${e.message}</span>`
     console.error('Supabase hiba:', e)
   }
 
@@ -1368,4 +1368,3 @@ init()
 </script>
 </body>
 </html>
-
