@@ -803,23 +803,39 @@ function calcPoints(tip, score) {
   return tipR === realR ? 1 : 0
 }
 
+// A RENDES JÁTÉKIDŐ (90 perc) eredménye – hosszabbítás és 11-es párbaj NÉLKÜL.
+// Kieséses meccseknél az API megadja a regularTime mezőt; ahol nincs (csoportkör,
+// 90 percben eldőlt meccs), ott a fullTime maga a rendes játékidő eredménye.
 function getFinalScore(match) {
   if (match.status !== 'FINISHED') return null
-  const s = match.score?.fullTime
-  return (s && s.home !== null) ? s : null
+  const sc = match.score
+  const s = sc?.regularTime || sc?.fullTime
+  return (s && s.home != null) ? s : null
+}
+
+// Igaz, ha a meccs hosszabbításban vagy 11-es párbajban dőlt el.
+function wentBeyondRegular(match) {
+  const d = match.score?.duration
+  return d === 'EXTRA_TIME' || d === 'PENALTY_SHOOTOUT'
 }
 
 function renderMatchCard(match) {
   const home = match.homeTeam?.shortName || match.homeTeam?.name || '?'
   const away = match.awayTeam?.shortName || match.awayTeam?.name || '?'
-  const score = match.score?.fullTime
+  const liveScore = match.score?.fullTime
   const isLive = ['IN_PLAY','PAUSED','LIVE'].includes(match.status)
   const isFinished = match.status === 'FINISHED'
   const finalScore = getFinalScore(match)
 
   let scoreHTML = ''
-  if (isFinished && score) scoreHTML = `<div class="score-main">${score.home}–${score.away}</div>`
-  else if (isLive && score) scoreHTML = `<div class="score-main">${score.home??0}–${score.away??0}</div><div style="font-size:.75rem;color:var(--live)">⏱ Élő</div>`
+  if (isFinished && finalScore) {
+    const pen = match.score?.penalties
+    const extra = wentBeyondRegular(match)
+      ? `<div style="font-size:.68rem;color:var(--muted);margin-top:.15rem">${match.score?.duration==='PENALTY_SHOOTOUT' && pen ? `11-esekkel ${pen.home}–${pen.away}` : 'hosszabbítás után'}</div>`
+      : ''
+    scoreHTML = `<div class="score-main">${finalScore.home}–${finalScore.away}</div>${extra}`
+  }
+  else if (isLive && liveScore) scoreHTML = `<div class="score-main">${liveScore.home??0}–${liveScore.away??0}</div><div style="font-size:.75rem;color:var(--live)">⏱ Élő</div>`
   else scoreHTML = `<div class="score-vs">vs</div>`
 
   const tipsHTML = state.players.length === 0 ? `<div class="tip-section"><div style="font-size:.8rem;color:var(--muted);">Adj hozzá játékosokat a Beállítások fülön.</div></div>` : `
@@ -1121,17 +1137,20 @@ function renderBracket() {
     <div class="bracket-round">
       <div class="bracket-round-title">${stageLabel(stage)}</div>
       <div class="bracket-matches">${sm[stage].map(m=>{
-        const sc=m.score?.fullTime, fin=m.status==='FINISHED'
-        const hw=fin&&sc&&sc.home>sc.away, aw=fin&&sc&&sc.away>sc.home
+        const reg=getFinalScore(m), fin=m.status==='FINISHED'
+        // A továbbjutót a winner mező adja (11-es párbaj / hosszabbítás után is helyes),
+        // a kijelzett eredmény viszont a rendes játékidőé.
+        const hw=fin&&m.score?.winner==='HOME_TEAM', aw=fin&&m.score?.winner==='AWAY_TEAM'
+        const pen = m.score?.duration==='PENALTY_SHOOTOUT'
         const h=m.homeTeam?.shortName||m.homeTeam?.name||'TBD', a=m.awayTeam?.shortName||m.awayTeam?.name||'TBD'
         return `<div class="bracket-match">
           <div class="bracket-team ${hw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.homeTeam, 20)} ${h}</span>
-            <span class="bracket-team-score">${fin&&sc?sc.home:''}</span>
+            <span class="bracket-team-name">${teamFlag(m.homeTeam, 20)} ${h}${pen&&hw?' <span style="font-size:.65rem;color:var(--muted)">(11)</span>':''}</span>
+            <span class="bracket-team-score">${fin&&reg?reg.home:''}</span>
           </div>
           <div class="bracket-team ${aw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.awayTeam, 20)} ${a}</span>
-            <span class="bracket-team-score">${fin&&sc?sc.away:''}</span>
+            <span class="bracket-team-name">${teamFlag(m.awayTeam, 20)} ${a}${pen&&aw?' <span style="font-size:.65rem;color:var(--muted)">(11)</span>':''}</span>
+            <span class="bracket-team-score">${fin&&reg?reg.away:''}</span>
           </div>
         </div>`
       }).join('')}</div>
