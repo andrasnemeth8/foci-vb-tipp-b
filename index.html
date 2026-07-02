@@ -804,19 +804,33 @@ function calcPoints(tip, score) {
 }
 
 // A RENDES JÁTÉKIDŐ (90 perc) eredménye – hosszabbítás és 11-es párbaj NÉLKÜL.
-// Kieséses meccseknél az API megadja a regularTime mezőt; ahol nincs (csoportkör,
-// 90 percben eldőlt meccs), ott a fullTime maga a rendes játékidő eredménye.
+// Sorrend: (1) ha az API kitöltötte a regularTime mezőt, azt használjuk;
+// (2) egyébként a fullTime-ból levonjuk a hosszabbítást és a 11-eseket
+//     (az API néha REGULAR duration-t jelöl, miközben van extraTime, és a
+//     regularTime null értékekkel érkezik – ezt is helyre kell tenni);
+// (3) sima meccsnél a fullTime maga a rendes játékidő eredménye.
 function getFinalScore(match) {
   if (match.status !== 'FINISHED') return null
   const sc = match.score
-  const s = sc?.regularTime || sc?.fullTime
-  return (s && s.home != null) ? s : null
+  const ft = sc?.fullTime
+  if (!ft || ft.home == null) return null
+  const rt = sc.regularTime
+  if (rt && rt.home != null && rt.away != null) return { home: rt.home, away: rt.away }
+  let h = ft.home, a = ft.away
+  const et = sc.extraTime, pen = sc.penalties
+  if (et && et.home != null) { h -= et.home; a -= et.away }
+  if (pen && pen.home != null) { h -= pen.home; a -= pen.away }
+  return { home: h, away: a }
 }
 
-// Igaz, ha a meccs hosszabbításban vagy 11-es párbajban dőlt el.
-function wentBeyondRegular(match) {
-  const d = match.score?.duration
-  return d === 'EXTRA_TIME' || d === 'PENALTY_SHOOTOUT'
+// Hogyan dőlt el a meccs, ha nem rendes játékidőben: '11-es' | 'hosszabbítás' | ''.
+// A duration mező néha megbízhatatlan, ezért a tényleges mezőket is nézzük.
+function decisionTag(match) {
+  const sc = match.score
+  if (!sc) return ''
+  if (sc.duration === 'PENALTY_SHOOTOUT' || (sc.penalties && sc.penalties.home != null)) return '11-es'
+  if (sc.duration === 'EXTRA_TIME' || (sc.extraTime && (sc.extraTime.home || sc.extraTime.away))) return 'hosszabbítás'
+  return ''
 }
 
 function renderMatchCard(match) {
@@ -829,9 +843,9 @@ function renderMatchCard(match) {
 
   let scoreHTML = ''
   if (isFinished && finalScore) {
-    const pen = match.score?.penalties
-    const extra = wentBeyondRegular(match)
-      ? `<div style="font-size:.68rem;color:var(--muted);margin-top:.15rem">${match.score?.duration==='PENALTY_SHOOTOUT' && pen ? `11-esekkel ${pen.home}–${pen.away}` : 'hosszabbítás után'}</div>`
+    const tag = decisionTag(match), pen = match.score?.penalties
+    const extra = tag
+      ? `<div style="font-size:.68rem;color:var(--muted);margin-top:.15rem">${tag==='11-es' && pen ? `11-esekkel ${pen.home}–${pen.away}` : 'hosszabbítás után'}</div>`
       : ''
     scoreHTML = `<div class="score-main">${finalScore.home}–${finalScore.away}</div>${extra}`
   }
@@ -1141,15 +1155,15 @@ function renderBracket() {
         // A továbbjutót a winner mező adja (11-es párbaj / hosszabbítás után is helyes),
         // a kijelzett eredmény viszont a rendes játékidőé.
         const hw=fin&&m.score?.winner==='HOME_TEAM', aw=fin&&m.score?.winner==='AWAY_TEAM'
-        const pen = m.score?.duration==='PENALTY_SHOOTOUT'
+        const tag = decisionTag(m), tagS = tag==='11-es'?'(11)':tag==='hosszabbítás'?'(hosz.)':''
         const h=m.homeTeam?.shortName||m.homeTeam?.name||'TBD', a=m.awayTeam?.shortName||m.awayTeam?.name||'TBD'
         return `<div class="bracket-match">
           <div class="bracket-team ${hw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.homeTeam, 20)} ${h}${pen&&hw?' <span style="font-size:.65rem;color:var(--muted)">(11)</span>':''}</span>
+            <span class="bracket-team-name">${teamFlag(m.homeTeam, 20)} ${h}${tagS&&hw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
             <span class="bracket-team-score">${fin&&reg?reg.home:''}</span>
           </div>
           <div class="bracket-team ${aw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.awayTeam, 20)} ${a}${pen&&aw?' <span style="font-size:.65rem;color:var(--muted)">(11)</span>':''}</span>
+            <span class="bracket-team-name">${teamFlag(m.awayTeam, 20)} ${a}${tagS&&aw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
             <span class="bracket-team-score">${fin&&reg?reg.away:''}</span>
           </div>
         </div>`
