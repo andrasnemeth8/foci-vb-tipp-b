@@ -834,6 +834,25 @@ function decisionTag(match) {
   return ''
 }
 
+// A meccs győztese: 'HOME_TEAM' | 'AWAY_TEAM' | 'DRAW' | null.
+// Elsődlegesen a winner mezőt használjuk, de az néha null-lal érkezik (pl. 11-es
+// párbaj után); ilyenkor a fullTime összesített eredményéből (ami a 11-eseket is
+// tartalmazza), végső soron a 11-esekből döntünk.
+function matchWinner(match) {
+  if (match.status !== 'FINISHED') return null
+  const sc = match.score
+  if (!sc) return null
+  if (sc.winner === 'HOME_TEAM' || sc.winner === 'AWAY_TEAM' || sc.winner === 'DRAW') return sc.winner
+  const ft = sc.fullTime
+  if (ft && ft.home != null) {
+    if (ft.home > ft.away) return 'HOME_TEAM'
+    if (ft.away > ft.home) return 'AWAY_TEAM'
+    const pen = sc.penalties
+    if (pen && pen.home != null && pen.home !== pen.away) return pen.home > pen.away ? 'HOME_TEAM' : 'AWAY_TEAM'
+  }
+  return null
+}
+
 function renderMatchCard(match) {
   const home = match.homeTeam?.shortName || match.homeTeam?.name || '?'
   const away = match.awayTeam?.shortName || match.awayTeam?.name || '?'
@@ -1155,7 +1174,7 @@ function renderBracket() {
         const reg=getFinalScore(m), fin=m.status==='FINISHED'
         // A továbbjutót a winner mező adja (11-es párbaj / hosszabbítás után is helyes),
         // a kijelzett eredmény viszont a rendes játékidőé.
-        const hw=fin&&m.score?.winner==='HOME_TEAM', aw=fin&&m.score?.winner==='AWAY_TEAM'
+        const w=matchWinner(m), hw=fin&&w==='HOME_TEAM', aw=fin&&w==='AWAY_TEAM'
         const tag = decisionTag(m), tagS = tag==='11-es'?'(11)':tag==='hosszabbítás'?'(hosz.)':''
         const h=m.homeTeam?.shortName||m.homeTeam?.name||'TBD', a=m.awayTeam?.shortName||m.awayTeam?.name||'TBD'
         return `<div class="bracket-match">
