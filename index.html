@@ -189,6 +189,19 @@
   .bracket-team.winner { background: rgba(240,180,41,.08); }
   .bracket-team.winner .bracket-team-name { color: var(--gold); }
 
+  /* Ágdiagram – keskeny kijelzőn körönként egymásra pakolva */
+  @media (max-width: 900px) {
+    .bracket-wrap { overflow-x: visible; padding: .25rem 0; }
+    .bracket { flex-direction: column; min-width: 0; gap: 1.4rem; }
+    .bracket-round { padding: 0; }
+    .bracket-round-title { margin-bottom: .7rem; font-size: .82rem; padding: .6rem; }
+    .bracket-matches { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem; justify-content: stretch; }
+    .bracket-match { min-height: 0; }
+    .bracket-team { padding: .55rem .85rem; }
+    .bracket-team-name { font-size: .88rem; }
+    .bracket-team-score { font-size: .95rem; }
+  }
+
   .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem; }
   .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
   .settings-card h3 { color: var(--gold); font-size: 1rem; margin-bottom: 1rem; padding-bottom: .75rem; border-bottom: 1px solid var(--border); }
@@ -400,8 +413,8 @@
     <div class="tab active" data-tab="tips">⚽ Tippek</div>
     <div class="tab" data-tab="standings">🏆 Pontszámok</div>
     <div class="tab" data-tab="funfacts">🎉 Fun facts</div>
-    <div class="tab" data-tab="groups">📊 Csoportok</div>
     <div class="tab" data-tab="bracket">🔱 Ágdiagram</div>
+    <div class="tab" data-tab="groups">📊 Csoportok</div>
     <div class="tab" data-tab="settings">⚙️ Beállítások</div>
   </div>
 </nav>
