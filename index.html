@@ -853,6 +853,34 @@ function matchWinner(match) {
   return null
 }
 
+// A kieséses ág progressziója; a THIRD_PLACE szándékosan kimarad (SF-vesztesekből jön).
+const KO_PROGRESSION = ['LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','FINAL']
+
+// Egy kieséses meccs résztvevői {home, away} csapatobjektumként. Ha az API már
+// kitöltötte, azt adjuk vissza; ha a csapatok TBD-k, az előző kör EGYMÁST KÖVETŐ
+// id-párjainak győzteseiből vezetjük le (az API néha késve lépteti tovább a csapatokat).
+function bracketParticipants(match, allMatches) {
+  const home = match.homeTeam?.name ? match.homeTeam : null
+  const away = match.awayTeam?.name ? match.awayTeam : null
+  if (home || away) return { home, away }            // kész vagy félig kész: nem tippelünk
+  const i = KO_PROGRESSION.indexOf(match.stage)
+  if (i <= 0) return { home, away }                  // LAST_32 / THIRD_PLACE / ismeretlen
+  const prev = allMatches.filter(m => m.stage === KO_PROGRESSION[i-1]).sort((a,b)=>a.id-b.id)
+  const cur  = allMatches.filter(m => m.stage === match.stage).sort((a,b)=>a.id-b.id)
+  if (prev.length < 2) return { home, away }
+  const winnerTeam = m => { const w = matchWinner(m); return w==='HOME_TEAM'?m.homeTeam : w==='AWAY_TEAM'?m.awayTeam : null }
+  const taken = new Set(cur.filter(m=>m.homeTeam?.name && m.awayTeam?.name)
+    .map(m=>[m.homeTeam.name,m.awayTeam.name].sort().join('|')))
+  const remaining = []
+  for (let j=0; j+1<prev.length; j+=2) {
+    const a = winnerTeam(prev[j]), b = winnerTeam(prev[j+1])
+    if (a && b && !taken.has([a.name,b.name].sort().join('|'))) remaining.push({ home:a, away:b })
+  }
+  const tbd = cur.filter(m => !m.homeTeam?.name && !m.awayTeam?.name)
+  const pos = tbd.indexOf(match)
+  return (pos>=0 && pos<remaining.length) ? remaining[pos] : { home, away }
+}
+
 function renderMatchCard(match) {
   const home = match.homeTeam?.shortName || match.homeTeam?.name || '?'
   const away = match.awayTeam?.shortName || match.awayTeam?.name || '?'
@@ -1176,14 +1204,17 @@ function renderBracket() {
         // a kijelzett eredmény viszont a rendes játékidőé.
         const w=matchWinner(m), hw=fin&&w==='HOME_TEAM', aw=fin&&w==='AWAY_TEAM'
         const tag = decisionTag(m), tagS = tag==='11-es'?'(11)':tag==='hosszabbítás'?'(hosz.)':''
-        const h=m.homeTeam?.shortName||m.homeTeam?.name||'TBD', a=m.awayTeam?.shortName||m.awayTeam?.name||'TBD'
+        // Ha az API még nem léptette tovább a csapatokat, az előző kör győzteseiből vezetjük le.
+        const P = bracketParticipants(m, state.matches)
+        const ht = P.home, at = P.away
+        const h=ht?.shortName||ht?.name||'TBD', a=at?.shortName||at?.name||'TBD'
         return `<div class="bracket-match">
           <div class="bracket-team ${hw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.homeTeam, 20)} ${h}${tagS&&hw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
+            <span class="bracket-team-name">${teamFlag(ht, 20)} ${h}${tagS&&hw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
             <span class="bracket-team-score">${fin&&reg?reg.home:''}</span>
           </div>
           <div class="bracket-team ${aw?'winner':''}">
-            <span class="bracket-team-name">${teamFlag(m.awayTeam, 20)} ${a}${tagS&&aw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
+            <span class="bracket-team-name">${teamFlag(at, 20)} ${a}${tagS&&aw?` <span style="font-size:.65rem;color:var(--muted)">${tagS}</span>`:''}</span>
             <span class="bracket-team-score">${fin&&reg?reg.away:''}</span>
           </div>
         </div>`
