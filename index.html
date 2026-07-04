@@ -486,6 +486,7 @@
         </div>
         <button class="btn secondary" onclick="manualRefresh()">🔄 Azonnali frissítés</button>
         <div id="last-refresh-info" style="margin-top:.75rem;font-size:.8rem;color:var(--muted);"></div>
+        <div id="app-version" style="margin-top:.5rem;font-size:.72rem;color:var(--muted);"></div>
       </div>
 
       <div class="settings-card">
@@ -1284,6 +1285,9 @@ async function init() {
   if (state.apiKey) document.getElementById('api-key-input').value = state.apiKey
   const sel = document.getElementById('refresh-interval-select')
   if (sel) sel.value = state.refreshInterval
+  // Betöltött fájl verziója – így egyből látszik, hogy a legfrissebb kód fut-e.
+  const ver = document.getElementById('app-version')
+  if (ver) ver.textContent = `App verzió (fájl módosítva): ${document.lastModified}`
 
   // Supabase adatok betöltése
   const dbStatus = document.getElementById('db-status')
