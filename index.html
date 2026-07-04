@@ -130,6 +130,42 @@
   .detail-tip-row:nth-child(odd) { background: rgba(255,255,255,.02); }
   .detail-tip-date { color: var(--muted); font-size: .75rem; min-width: 80px; }
 
+  /* Fun facts */
+  .ff-section-title { font-size: 1.05rem; color: var(--gold); font-weight: 800; margin: 1.75rem 0 .9rem; display: flex; align-items: center; gap: .5rem; }
+  .ff-section-title:first-child { margin-top: 0; }
+  .ff-empty { color: var(--muted); font-size: .9rem; background: var(--card); border: 1px dashed var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
+  .ff-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+  .ff-award { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; position: relative; overflow: hidden; transition: border-color .2s, transform .1s; }
+  .ff-award:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .ff-award::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), transparent); }
+  .ff-award-emoji { font-size: 1.9rem; line-height: 1; }
+  .ff-award-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; margin: .5rem 0 .15rem; }
+  .ff-award-winner { font-size: 1.25rem; font-weight: 900; color: var(--text); }
+  .ff-award-detail { font-size: .8rem; color: var(--muted); margin-top: .35rem; line-height: 1.4; }
+  .ff-award-value { color: var(--gold); font-weight: 800; }
+
+  .ff-profiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .ff-profile { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; }
+  .ff-profile-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .75rem; }
+  .ff-profile-name { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+  .ff-badge { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; padding: .2rem .55rem; border-radius: 20px; background: rgba(240,180,41,.14); color: var(--gold); white-space: nowrap; }
+  .ff-stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .3rem 0; font-size: .85rem; border-top: 1px solid var(--border); }
+  .ff-stat-row:first-of-type { border-top: none; }
+  .ff-stat-label { color: var(--muted); }
+  .ff-stat-val { font-weight: 700; color: var(--text); text-align: right; }
+
+  .ff-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .ff-fact { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; }
+  .ff-fact-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; margin-bottom: .4rem; display: flex; align-items: center; gap: .4rem; }
+  .ff-fact-body { font-size: .92rem; color: var(--text); line-height: 1.45; }
+  .ff-fact-body b { color: var(--gold); }
+
+  .ff-chart { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; overflow-x: auto; }
+  .ff-chart svg { display: block; min-width: 520px; width: 100%; height: auto; }
+  .ff-legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .9rem; }
+  .ff-legend-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--text); }
+  .ff-legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
   .bracket-wrap { overflow-x: auto; padding: 1rem 0; }
   .bracket { display: flex; gap: 0; min-width: 900px; }
   .bracket-round { flex: 1; display: flex; flex-direction: column; padding: 0 .5rem; }
@@ -354,6 +390,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="tips">⚽ Tippek</div>
     <div class="tab" data-tab="standings">🏆 Pontszámok</div>
+    <div class="tab" data-tab="funfacts">🎉 Fun facts</div>
     <div class="tab" data-tab="groups">📊 Csoportok</div>
     <div class="tab" data-tab="bracket">🔱 Ágdiagram</div>
     <div class="tab" data-tab="settings">⚙️ Beállítások</div>
@@ -409,6 +446,15 @@
       </div>
       <div id="tips-detail"></div>
     </div>
+  </div>
+
+  <!-- FUN FACTS -->
+  <div class="tab-content" id="tab-funfacts">
+    <div style="margin-bottom:1.5rem">
+      <h2 style="color:var(--gold);font-size:1.3rem;margin-bottom:.3rem;">🎉 Fun facts</h2>
+      <p style="font-size:.8rem;color:var(--muted);">Érdekességek a tippelésből – csak a befejezett meccsek alapján, rendes játékidővel.</p>
+    </div>
+    <div id="funfacts-container"></div>
   </div>
 
   <!-- CSOPORTOK -->
@@ -1067,6 +1113,9 @@ function renderStandings() {
       <div class="detail-player-body">${rows}</div>
     </div>`
   }).join('')
+
+  // A fun facts sosem törheti meg a pontszámok/meccsek magját.
+  try { renderFunFacts() } catch(e) { console.error('Fun facts hiba:', e) }
 }
 
 function exportToExcel() {
@@ -1117,6 +1166,279 @@ function exportToExcel() {
 function toggleDetail(header) {
   header.classList.toggle('open')
   header.nextElementSibling?.classList.toggle('open')
+}
+
+// ============================================================
+// FUN FACTS
+// ============================================================
+const FF_MIN_TIPS = 3  // minimum kiértékelt tipp egyes díjakhoz
+const FF_COLORS = ['#f0b429','#3a86ff','#2ecc71','#e63946','#b118c8','#ff8c42','#17c3b2','#ff5da2','#9aa6bd','#c9cb3b']
+
+function ffOutcome(h, a){ return h>a ? 'H' : h<a ? 'A' : 'D' }
+function ffTeams(m){ return { h: m.homeTeam?.shortName||m.homeTeam?.name||'?', a: m.awayTeam?.shortName||m.awayTeam?.name||'?' } }
+function ffMatchLabel(m){ const t=ffTeams(m); return `${t.h}–${t.a}` }
+function ffEsc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+
+// Befejezett, érvényes eredményű meccsek időrendben.
+function ffFinishedMatches(){
+  return state.matches.filter(m=>getFinalScore(m))
+    .slice().sort((a,b)=> new Date(a.utcDate||0) - new Date(b.utcDate||0))
+}
+
+// Minden statisztika egy helyen – tesztelhető, tiszta adatszerkezet.
+function computeFunFacts(){
+  const players = state.players
+  const matches = ffFinishedMatches()
+  const stats = {}
+  players.forEach(p => stats[p] = { name:p, tips:0, pts:0, exact:0, correct:0, zero:0,
+    goalsSum:0, streak:0, cur:0, seq:[], scoreCounts:{}, offByOne:0, bestHit:null })
+  const globalScoreCounts = {}
+  const matchInfo = []
+  matches.forEach(m => {
+    const fs = getFinalScore(m)
+    const realOut = ffOutcome(fs.home, fs.away)
+    let tippers=0, scored=0, wrongOut=0
+    const exactPlayers = []
+    players.forEach(p => {
+      const tip = getSavedTip(m.id, p)
+      if (!tip) return
+      const st = stats[p]
+      tippers++
+      const pts = calcPoints(tip, fs)
+      st.tips++; st.pts += pts; st.goalsSum += (tip.home + tip.away)
+      const sk = `${tip.home}–${tip.away}`
+      st.scoreCounts[sk] = (st.scoreCounts[sk]||0) + 1
+      globalScoreCounts[sk] = (globalScoreCounts[sk]||0) + 1
+      if (pts===3) st.exact++; else if (pts===1) st.correct++; else st.zero++
+      if (pts>=1){ st.cur++; if(st.cur>st.streak) st.streak=st.cur } else st.cur=0
+      st.seq.push(pts)
+      if (Math.abs(tip.home-fs.home) + Math.abs(tip.away-fs.away) === 1) st.offByOne++
+      if (pts>=1) scored++
+      if (ffOutcome(tip.home,tip.away) !== realOut) wrongOut++
+      if (pts===3) exactPlayers.push(p)
+    })
+    matchInfo.push({ m, fs, tippers, scored, wrongOut, exactPlayers, realOut })
+  })
+  // származtatott mezők
+  Object.values(stats).forEach(st => {
+    st.exactRate = st.tips ? st.exact/st.tips : 0
+    st.avgGoals  = st.tips ? st.goalsSum/st.tips : 0
+    st.ppt       = st.tips ? st.pts/st.tips : 0
+    st.last5     = st.seq.slice(-5).reduce((a,b)=>a+b,0)
+    st.last5n    = Math.min(5, st.seq.length)
+    let fav=null, favN=0
+    Object.entries(st.scoreCounts).forEach(([k,n])=>{ if(n>favN){ favN=n; fav=k } })
+    st.favScore = fav; st.favScoreN = favN
+  })
+  // legnehezebb találat (globális + játékosonként): minél többen tévesztették a kimenetelt, annál nehezebb
+  matchInfo.forEach(mi => {
+    const totGoals = mi.fs.home + mi.fs.away
+    mi.exactPlayers.forEach(p => {
+      const diff = mi.wrongOut*1000 + (mi.tippers - mi.exactPlayers.length)*10 + totGoals
+      const st = stats[p]
+      if (!st.bestHit || diff > st.bestHit.diff) st.bestHit = { mi, diff }
+    })
+  })
+  return { players, matches, stats, matchInfo, globalScoreCounts }
+}
+
+function ffAwardCard(emoji, title, winner, detailHTML){
+  return `<div class="ff-award">
+    <div class="ff-award-emoji">${emoji}</div>
+    <div class="ff-award-title">${title}</div>
+    <div class="ff-award-winner">${ffEsc(winner)}</div>
+    <div class="ff-award-detail">${detailHTML}</div>
+  </div>`
+}
+
+function ffBuildAwards(F){
+  const all = Object.values(F.stats)
+  const withTips = all.filter(s=>s.tips>0)
+  const elig = all.filter(s=>s.tips>=FF_MIN_TIPS)
+  const cards = []
+  const top = (list, cmp) => list.length ? list.slice().sort(cmp)[0] : null
+
+  // 🔮 Jós – legjobb pontos-találati arány
+  let c = top(elig.filter(s=>s.exact>0), (a,b)=> b.exactRate-a.exactRate || b.exact-a.exact || b.tips-a.tips)
+  if (c) cards.push(ffAwardCard('🔮','A Jós', c.name, `<span class="ff-award-value">${Math.round(c.exactRate*100)}%</span> pontos találat (${c.exact}/${c.tips})`))
+
+  // 🎯 Mesterlövész – legtöbb pontos találat
+  c = top(withTips.filter(s=>s.exact>0), (a,b)=> b.exact-a.exact || b.exactRate-a.exactRate)
+  if (c) cards.push(ffAwardCard('🎯','Mesterlövész', c.name, `<span class="ff-award-value">${c.exact}</span> pontos (3 pontos) találat`))
+
+  // 🔥 Sorozatgyilkos – leghosszabb pontszerző sorozat
+  c = top(withTips.filter(s=>s.streak>=2), (a,b)=> b.streak-a.streak || b.pts-a.pts)
+  if (c) cards.push(ffAwardCard('🔥','Sorozatgyilkos', c.name, `<span class="ff-award-value">${c.streak}</span> meccses pontszerző sorozat`))
+
+  // 💎 Legnehezebb találat – globálisan a legnehezebb pontos találat
+  const hits = all.filter(s=>s.bestHit).map(s=>({ name:s.name, ...s.bestHit }))
+  const hardest = top(hits, (a,b)=> b.diff-a.diff)
+  if (hardest){
+    const mi = hardest.mi, t = ffTeams(mi.m)
+    const d = mi.wrongOut>0
+      ? `eltalálta a <span class="ff-award-value">${mi.fs.home}–${mi.fs.away}</span> végeredményt (${ffEsc(t.h)}–${ffEsc(t.a)}), pedig ${mi.wrongOut} játékos mást várt`
+      : `pontos ${mi.fs.home}–${mi.fs.away} találat a ${ffEsc(t.h)}–${ffEsc(t.a)} meccsen`
+    cards.push(ffAwardCard('💎','Legnehezebb találat', hardest.name, d))
+  }
+
+  // 🎲 Kockáztató / 🛡️ Óvatos – csak ha legalább 2 megfelelő játékos van
+  if (elig.length>=2){
+    const brave = top(elig, (a,b)=> b.avgGoals-a.avgGoals)
+    cards.push(ffAwardCard('🎲','Kockáztató', brave.name, `átlag <span class="ff-award-value">${brave.avgGoals.toFixed(1)}</span> megtippelt gól/meccs`))
+    const cauti = top(elig, (a,b)=> a.avgGoals-b.avgGoals)
+    cards.push(ffAwardCard('🛡️','Óvatos', cauti.name, `átlag <span class="ff-award-value">${cauti.avgGoals.toFixed(1)}</span> gól/meccs${cauti.favScore?`, kedvenc: ${cauti.favScore}`:''}`))
+  }
+
+  // 😤 Pechvogel – legtöbbször járt egyetlen gólra a telitalálattól
+  c = top(withTips.filter(s=>s.offByOne>0), (a,b)=> b.offByOne-a.offByOne || a.exact-b.exact)
+  if (c) cards.push(ffAwardCard('😤','Pechvogel', c.name, `<span class="ff-award-value">${c.offByOne}</span> meccsen egyetlen gól hiányzott a telitalálathoz`))
+
+  // 📈 Formában – legtöbb pont az utolsó max 5 meccsen
+  c = top(withTips.filter(s=>s.seq.length>=3 && s.last5>0), (a,b)=> b.last5-a.last5 || b.pts-a.pts)
+  if (c) cards.push(ffAwardCard('📈','Formában', c.name, `<span class="ff-award-value">${c.last5}</span> pont az utolsó ${c.last5n} meccsen`))
+
+  return cards
+}
+
+function ffBuildProfiles(F){
+  // sorrend: aktuális pontszám szerint csökkenő
+  const order = Object.values(F.stats).slice().sort((a,b)=> b.pts-a.pts || b.exact-a.exact || a.name.localeCompare(b.name))
+  return order.map(s => {
+    if (!s.tips) return `<div class="ff-profile">
+      <div class="ff-profile-head"><span class="ff-profile-name">${ffEsc(s.name)}</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Még nincs kiértékelt tippje</span></div>
+    </div>`
+    // jellem-címke
+    let badge = 'Rutinos'
+    const avg = s.avgGoals
+    if (s.exactRate>=0.34) badge = 'Jós'
+    else if (s.streak>=3) badge = 'Sorozatgyilkos'
+    else if (avg>=3.2) badge = 'Kockáztató'
+    else if (avg>0 && avg<=1.6) badge = 'Óvatos'
+    else if (s.offByOne>=2 && s.exact===0) badge = 'Pechvogel'
+    const best = s.bestHit ? (()=>{ const t=ffTeams(s.bestHit.mi.m); return `${s.bestHit.mi.fs.home}–${s.bestHit.mi.fs.away} (${ffEsc(t.h)}–${ffEsc(t.a)})` })() : '–'
+    return `<div class="ff-profile">
+      <div class="ff-profile-head">
+        <span class="ff-profile-name">${ffEsc(s.name)}</span>
+        <span class="ff-badge">${badge}</span>
+      </div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Pontos találat</span><span class="ff-stat-val">${s.exact}/${s.tips} (${Math.round(s.exactRate*100)}%)</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Leghosszabb sorozat</span><span class="ff-stat-val">${s.streak} meccs</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Kedvenc eredmény</span><span class="ff-stat-val">${s.favScore?`${s.favScore} (${s.favScoreN}×)`:'–'}</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Legjobb találat</span><span class="ff-stat-val">${best}</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Átlag megtippelt gól</span><span class="ff-stat-val">${s.avgGoals.toFixed(1)}</span></div>
+    </div>`
+  }).join('')
+}
+
+function ffFactCard(emoji, title, bodyHTML){
+  return `<div class="ff-fact"><div class="ff-fact-title">${emoji} ${title}</div><div class="ff-fact-body">${bodyHTML}</div></div>`
+}
+
+function ffBuildCollective(F){
+  const cards = []
+  // 📊 Legnépszerűbb tipp
+  const ge = Object.entries(F.globalScoreCounts).sort((a,b)=> b[1]-a[1])
+  if (ge.length) cards.push(ffFactCard('📊','Legnépszerűbb tipp', `A(z) <b>${ge[0][0]}</b> volt a leggyakrabban beírt eredmény (${ge[0][1]}×).`))
+  // meccsek, ahol volt tippelő
+  const tipped = F.matchInfo.filter(mi=>mi.tippers>0)
+  const tipped2 = F.matchInfo.filter(mi=>mi.tippers>=2)
+  // 🤝 Konszenzus-meccs
+  if (tipped.length){
+    const mi = tipped.slice().sort((a,b)=> (b.scored/b.tippers)-(a.scored/a.tippers) || b.scored-a.scored)[0]
+    const t = ffTeams(mi.m)
+    cards.push(ffFactCard('🤝','Konszenzus-meccs', `A(z) <b>${ffEsc(t.h)}–${ffEsc(t.a)}</b> (${mi.fs.home}–${mi.fs.away}) meccsen <b>${mi.scored}/${mi.tippers}</b> játékos szerzett pontot.`))
+  }
+  // 🙈 Fekete bárány
+  if (tipped2.length){
+    const mi = tipped2.slice().sort((a,b)=> (a.scored/a.tippers)-(b.scored/b.tippers) || a.scored-b.scored)[0]
+    const t = ffTeams(mi.m)
+    const who = mi.scored===0 ? 'senki sem találta el' : `csak <b>${mi.scored}/${mi.tippers}</b> találta el`
+    cards.push(ffFactCard('🙈','Fekete bárány', `A(z) <b>${ffEsc(t.h)}–${ffEsc(t.a)}</b> (${mi.fs.home}–${mi.fs.away}) meccset ${who}.`))
+  }
+  // 🌪️ Meglepetés-meccs
+  if (tipped2.length){
+    const mi = tipped2.slice().sort((a,b)=> (b.wrongOut/b.tippers)-(a.wrongOut/a.tippers) || b.wrongOut-a.wrongOut)[0]
+    if (mi.wrongOut>0){
+      const t = ffTeams(mi.m)
+      cards.push(ffFactCard('🌪️','Meglepetés-meccs', `A(z) <b>${ffEsc(t.h)}–${ffEsc(t.a)}</b> ${mi.fs.home}–${mi.fs.away} eredménye meglepetés volt: <b>${mi.wrongOut}/${mi.tippers}</b> játékos rossz kimenetelt tippelt.`))
+    }
+  }
+  return cards
+}
+
+function ffBuildChart(F){
+  const players = F.players.filter(p => F.stats[p].tips>0)
+  const N = F.matchInfo.length
+  if (players.length===0 || N<2) return ''
+  // kumulatív pontok játékosonként (index 0 = kezdet)
+  const cum = {}
+  players.forEach(p => cum[p] = [0])
+  F.matchInfo.forEach(mi => {
+    players.forEach(p => {
+      const tip = getSavedTip(mi.m.id, p)
+      const add = tip ? calcPoints(tip, mi.fs) : 0
+      cum[p].push(cum[p][cum[p].length-1] + add)
+    })
+  })
+  // sorrend a végső pont szerint (vezető elöl → arany szín)
+  const ranked = players.slice().sort((a,b)=> cum[b][N]-cum[a][N] || a.localeCompare(b))
+  const maxY = Math.max(1, ...ranked.map(p=>cum[p][N]))
+  const W=720, H=340, ml=34, mr=14, mt=16, mb=30
+  const plotW=W-ml-mr, plotH=H-mt-mb
+  const x = i => ml + (N===0?0:(i/N)*plotW)
+  const y = v => mt + plotH - (v/maxY)*plotH
+  // rács + y feliratok (0, fele, max)
+  const yticks = [0, Math.round(maxY/2), maxY].filter((v,i,arr)=>arr.indexOf(v)===i)
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pontszerzés íve">`
+  yticks.forEach(v => {
+    svg += `<line x1="${ml}" y1="${y(v).toFixed(1)}" x2="${W-mr}" y2="${y(v).toFixed(1)}" stroke="#2a3550" stroke-width="1"/>`
+    svg += `<text x="${ml-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="#8892a4">${v}</text>`
+  })
+  // x tengely felirat: első és utolsó meccs dátuma
+  const fd = d => d? new Date(d).toLocaleDateString('hu-HU',{month:'short',day:'numeric'}) : ''
+  svg += `<text x="${ml}" y="${H-8}" font-size="10" fill="#8892a4">${fd(F.matchInfo[0].m.utcDate)}</text>`
+  svg += `<text x="${W-mr}" y="${H-8}" text-anchor="end" font-size="10" fill="#8892a4">${fd(F.matchInfo[N-1].m.utcDate)}</text>`
+  // vonalak
+  ranked.forEach((p,idx) => {
+    const col = FF_COLORS[idx % FF_COLORS.length]
+    const pts = cum[p].map((v,i)=> `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+    svg += `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`
+    // végpont
+    svg += `<circle cx="${x(N).toFixed(1)}" cy="${y(cum[p][N]).toFixed(1)}" r="3" fill="${col}"/>`
+  })
+  svg += `</svg>`
+  const legend = ranked.map((p,idx)=> `<span class="ff-legend-item"><span class="ff-legend-swatch" style="background:${FF_COLORS[idx%FF_COLORS.length]}"></span>${ffEsc(p)} <span style="color:var(--muted)">(${cum[p][N]})</span></span>`).join('')
+  return `<div class="ff-chart">${svg}<div class="ff-legend">${legend}</div></div>`
+}
+
+function renderFunFacts(){
+  const c = document.getElementById('funfacts-container')
+  if (!c) return
+  if (!state.players.length){
+    c.innerHTML = `<div class="ff-empty">Adj hozzá játékosokat és tippeket – utána itt jelennek meg az érdekességek.</div>`
+    return
+  }
+  const F = computeFunFacts()
+  if (!F.matches.length){
+    c.innerHTML = `<div class="ff-empty">Még nincs befejezett, kiértékelt meccs. Amint lejátszanak párat, itt életre kelnek a statisztikák. 🎉</div>`
+    return
+  }
+  const awards = ffBuildAwards(F)
+  const collective = ffBuildCollective(F)
+  const chart = ffBuildChart(F)
+  let html = ''
+  if (awards.length){
+    html += `<div class="ff-section-title">🏅 Kitüntetések</div><div class="ff-awards">${awards.join('')}</div>`
+  }
+  html += `<div class="ff-section-title">👤 Játékos-profilok</div><div class="ff-profiles">${ffBuildProfiles(F)}</div>`
+  if (collective.length){
+    html += `<div class="ff-section-title">🌍 Csapatszintű érdekességek</div><div class="ff-facts">${collective.join('')}</div>`
+  }
+  if (chart){
+    html += `<div class="ff-section-title">📉 Pontszerzés íve</div>${chart}`
+  }
+  c.innerHTML = html
 }
 
 // ============================================================
