@@ -160,11 +160,20 @@
   .ff-fact-body { font-size: .92rem; color: var(--text); line-height: 1.45; }
   .ff-fact-body b { color: var(--gold); }
 
-  .ff-chart { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; overflow-x: auto; }
-  .ff-chart svg { display: block; min-width: 520px; width: 100%; height: auto; }
-  .ff-legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .9rem; }
-  .ff-legend-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--text); }
-  .ff-legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  /* Fun facts – bar chart race */
+  .ff-race { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; }
+  .ff-race-header { margin-bottom: 1rem; }
+  .ff-race-main { font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+  .ff-race-sub { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+  .ff-race-track { position: relative; transition: height .3s ease; }
+  .ff-race-row { position: absolute; left: 0; right: 0; height: 26px; display: flex; align-items: center; gap: .5rem; transition: transform .5s cubic-bezier(.4,0,.2,1); }
+  .ff-race-label { width: 96px; flex-shrink: 0; text-align: right; font-size: .8rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ff-race-barwrap { flex: 1; display: flex; align-items: center; min-width: 0; }
+  .ff-race-fill { height: 22px; border-radius: 5px; transition: width .5s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; justify-content: flex-end; padding-right: 7px; box-sizing: border-box; min-width: 28px; color: #fff; font-size: .74rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+  .ff-race-controls { display: flex; align-items: center; gap: .6rem; margin-top: 1.1rem; flex-wrap: wrap; }
+  .ff-race-btn { background: var(--card2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .4rem .85rem; font-size: .82rem; font-weight: 700; cursor: pointer; transition: border-color .2s; }
+  .ff-race-btn:hover { border-color: var(--gold); }
+  .ff-race-scrub { flex: 1; min-width: 140px; accent-color: var(--gold); cursor: pointer; }
 
   .bracket-wrap { overflow-x: auto; padding: 1rem 0; }
   .bracket { display: flex; gap: 0; min-width: 900px; }
@@ -1367,49 +1376,126 @@ function ffBuildCollective(F){
   return cards
 }
 
-function ffBuildChart(F){
+// ---- Bar chart race ----
+const FF_ROWH = 30
+let ffRaceState = null
+let ffRaceTimer = null
+
+function ffBuildRace(F){
+  clearInterval(ffRaceTimer); ffRaceTimer = null; ffRaceState = null
   const players = F.players.filter(p => F.stats[p].tips>0)
   const N = F.matchInfo.length
-  if (players.length===0 || N<2) return ''
-  // kumulatív pontok játékosonként (index 0 = kezdet)
+  if (players.length < 2 || N < 2) return ''   // versenyhez legalább 2 játékos + 2 meccs kell
+  // kumulatív pontok játékosonként (index 0 = rajt)
   const cum = {}
   players.forEach(p => cum[p] = [0])
   F.matchInfo.forEach(mi => {
     players.forEach(p => {
       const tip = getSavedTip(mi.m.id, p)
-      const add = tip ? calcPoints(tip, mi.fs) : 0
-      cum[p].push(cum[p][cum[p].length-1] + add)
+      cum[p].push(cum[p][cum[p].length-1] + (tip ? calcPoints(tip, mi.fs) : 0))
     })
   })
-  // sorrend a végső pont szerint (vezető elöl → arany szín)
-  const ranked = players.slice().sort((a,b)=> cum[b][N]-cum[a][N] || a.localeCompare(b))
-  const maxY = Math.max(1, ...ranked.map(p=>cum[p][N]))
-  const W=720, H=340, ml=34, mr=14, mt=16, mb=30
-  const plotW=W-ml-mr, plotH=H-mt-mb
-  const x = i => ml + (N===0?0:(i/N)*plotW)
-  const y = v => mt + plotH - (v/maxY)*plotH
-  // rács + y feliratok (0, fele, max)
-  const yticks = [0, Math.round(maxY/2), maxY].filter((v,i,arr)=>arr.indexOf(v)===i)
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pontszerzés íve">`
-  yticks.forEach(v => {
-    svg += `<line x1="${ml}" y1="${y(v).toFixed(1)}" x2="${W-mr}" y2="${y(v).toFixed(1)}" stroke="#2a3550" stroke-width="1"/>`
-    svg += `<text x="${ml-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="#8892a4">${v}</text>`
+  // DOM- és színsorrend a végső pont szerint (vezető elöl → arany)
+  const order = players.slice().sort((a,b)=> cum[b][N]-cum[a][N] || a.localeCompare(b))
+  const colors = order.map((_,i)=> FF_COLORS[i % FF_COLORS.length])
+  // képkockánkénti feliratok
+  const fd = d => d ? new Date(d).toLocaleDateString('hu-HU',{month:'short',day:'numeric'}) : ''
+  const labels = []
+  for (let f=0; f<=N; f++){
+    if (f===0){ labels.push({ main:'🏁 Rajt', sub:'0 lejátszott meccs' }); continue }
+    const mi = F.matchInfo[f-1], t = ffTeams(mi.m)
+    labels.push({ main:`${f}/${N} meccs`, sub:`${ffEsc(t.h)}–${ffEsc(t.a)} ${mi.fs.home}–${mi.fs.away} · ${fd(mi.m.utcDate)}` })
+  }
+  const frameMs = Math.max(140, Math.min(700, Math.round(22000/N)))
+  ffRaceState = { order, colors, cum, N, labels, frame:N, playing:false, frameMs, rows:[], fills:[] }
+  const rowsHTML = order.map((p,i)=> `<div class="ff-race-row" id="ff-race-row-${i}">
+    <div class="ff-race-label">${ffEsc(p)}</div>
+    <div class="ff-race-barwrap"><div class="ff-race-fill" id="ff-race-fill-${i}" style="background:${colors[i]}">0</div></div>
+  </div>`).join('')
+  return `<div class="ff-race">
+    <div class="ff-race-header">
+      <div class="ff-race-main" id="ff-race-main">–</div>
+      <div class="ff-race-sub" id="ff-race-sub">–</div>
+    </div>
+    <div class="ff-race-track" id="ff-race-track" style="height:${order.length*FF_ROWH}px">${rowsHTML}</div>
+    <div class="ff-race-controls">
+      <button class="ff-race-btn" id="ff-race-toggle" onclick="ffRaceToggle()">▶ Lejátszás</button>
+      <button class="ff-race-btn" onclick="ffRaceReplay()">↻ Újra</button>
+      <input class="ff-race-scrub" id="ff-race-scrub" type="range" min="0" max="${N}" value="${N}" oninput="ffRaceSeek(this.value)">
+    </div>
+  </div>`
+}
+
+function ffRaceInit(){
+  const st = ffRaceState
+  if (!st) return
+  clearInterval(ffRaceTimer); ffRaceTimer = null
+  st.rows = st.order.map((_,i)=> document.getElementById(`ff-race-row-${i}`))
+  st.fills = st.order.map((_,i)=> document.getElementById(`ff-race-fill-${i}`))
+  if (st.rows.some(r=>!r)) { ffRaceState = null; return }
+  st.playing = false
+  renderRaceFrame(st.N)   // induláskor a jelenlegi állás látszik
+  ffRaceUpdateBtn()
+}
+
+function renderRaceFrame(f){
+  const st = ffRaceState
+  if (!st) return
+  f = Math.max(0, Math.min(st.N, f|0))
+  const vals = st.order.map((p,i)=> ({ i, name:p, v: st.cum[p][f] }))
+  const max = Math.max(1, ...vals.map(x=>x.v))
+  vals.slice().sort((a,b)=> b.v-a.v || a.name.localeCompare(b.name)).forEach((x,rank)=>{
+    const row = st.rows[x.i], fill = st.fills[x.i]
+    if (row) row.style.transform = `translateY(${rank*FF_ROWH}px)`
+    if (fill){ fill.style.width = `${(x.v/max*100).toFixed(2)}%`; fill.textContent = x.v }
   })
-  // x tengely felirat: első és utolsó meccs dátuma
-  const fd = d => d? new Date(d).toLocaleDateString('hu-HU',{month:'short',day:'numeric'}) : ''
-  svg += `<text x="${ml}" y="${H-8}" font-size="10" fill="#8892a4">${fd(F.matchInfo[0].m.utcDate)}</text>`
-  svg += `<text x="${W-mr}" y="${H-8}" text-anchor="end" font-size="10" fill="#8892a4">${fd(F.matchInfo[N-1].m.utcDate)}</text>`
-  // vonalak
-  ranked.forEach((p,idx) => {
-    const col = FF_COLORS[idx % FF_COLORS.length]
-    const pts = cum[p].map((v,i)=> `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
-    svg += `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`
-    // végpont
-    svg += `<circle cx="${x(N).toFixed(1)}" cy="${y(cum[p][N]).toFixed(1)}" r="3" fill="${col}"/>`
-  })
-  svg += `</svg>`
-  const legend = ranked.map((p,idx)=> `<span class="ff-legend-item"><span class="ff-legend-swatch" style="background:${FF_COLORS[idx%FF_COLORS.length]}"></span>${ffEsc(p)} <span style="color:var(--muted)">(${cum[p][N]})</span></span>`).join('')
-  return `<div class="ff-chart">${svg}<div class="ff-legend">${legend}</div></div>`
+  const main = document.getElementById('ff-race-main'), sub = document.getElementById('ff-race-sub')
+  if (main) main.textContent = st.labels[f].main
+  if (sub) sub.innerHTML = st.labels[f].sub
+  const scrub = document.getElementById('ff-race-scrub')
+  if (scrub && +scrub.value !== f) scrub.value = f
+  st.frame = f
+}
+
+function ffRaceUpdateBtn(){
+  const b = document.getElementById('ff-race-toggle')
+  if (b) b.textContent = (ffRaceState && ffRaceState.playing) ? '⏸ Szünet' : '▶ Lejátszás'
+}
+
+function ffRacePlay(){
+  const st = ffRaceState
+  if (!st) return
+  if (st.frame >= st.N) renderRaceFrame(0)   // a végéről újraindít
+  st.playing = true; ffRaceUpdateBtn()
+  clearInterval(ffRaceTimer)
+  ffRaceTimer = setInterval(()=>{
+    if (!ffRaceState){ clearInterval(ffRaceTimer); return }
+    if (ffRaceState.frame >= ffRaceState.N){ ffRacePause(); return }
+    renderRaceFrame(ffRaceState.frame + 1)
+  }, st.frameMs)
+}
+
+function ffRacePause(){
+  clearInterval(ffRaceTimer); ffRaceTimer = null
+  if (ffRaceState) ffRaceState.playing = false
+  ffRaceUpdateBtn()
+}
+
+function ffRaceToggle(){
+  if (!ffRaceState) return
+  ffRaceState.playing ? ffRacePause() : ffRacePlay()
+}
+
+function ffRaceReplay(){
+  if (!ffRaceState) return
+  renderRaceFrame(0)
+  ffRacePlay()
+}
+
+function ffRaceSeek(v){
+  if (!ffRaceState) return
+  ffRacePause()
+  renderRaceFrame(+v)
 }
 
 function renderFunFacts(){
@@ -1426,7 +1512,7 @@ function renderFunFacts(){
   }
   const awards = ffBuildAwards(F)
   const collective = ffBuildCollective(F)
-  const chart = ffBuildChart(F)
+  const race = ffBuildRace(F)
   let html = ''
   if (awards.length){
     html += `<div class="ff-section-title">🏅 Kitüntetések</div><div class="ff-awards">${awards.join('')}</div>`
@@ -1435,10 +1521,12 @@ function renderFunFacts(){
   if (collective.length){
     html += `<div class="ff-section-title">🌍 Csapatszintű érdekességek</div><div class="ff-facts">${collective.join('')}</div>`
   }
-  if (chart){
-    html += `<div class="ff-section-title">📉 Pontszerzés íve</div>${chart}`
+  if (race){
+    html += `<div class="ff-section-title">🏁 Pontverseny (bar chart race)</div>${race}`
   }
   c.innerHTML = html
+  // a race DOM most áll össze → bekötjük a vezérlést és megjelenítjük a jelenlegi állást
+  if (race) ffRaceInit()
 }
 
 // ============================================================
