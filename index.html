@@ -143,6 +143,14 @@
   .info-popover ol .rp-muted { display: block; margin-top: .05rem; }
   .info-popover > .rp-muted { margin-top: .6rem; }
   .info-popover b { color: var(--gold); }
+  .info-popover ul { margin: .35rem 0 0; padding-left: 1.15rem; }
+  .info-popover li { margin: .16rem 0; }
+
+  /* Pont-holtverseny jeloles: azonos pont, de a lanc szetvalasztotta a helyezest */
+  .standings-table tr.pts-tie-row td:first-child { border-left: 3px dotted var(--gold); }
+  .info-btn.tie-info { width: 17px; height: 17px; font-size: .64rem; margin-left: 7px; border-width: 1px; vertical-align: middle; }
+  .info-popover.float { position: absolute; z-index: 300; }
+  .info-popover.float::before { display: none; }
 
   .detail-player { border: 1px solid var(--border); border-radius: 10px; margin-bottom: .75rem; overflow: hidden; }
   .detail-player-header { display: flex; justify-content: space-between; align-items: center; padding: .7rem 1rem; background: var(--card2); cursor: pointer; user-select: none; font-weight: 700; color: var(--gold); }
@@ -1188,6 +1196,19 @@ function isRealTie(a, b) {
       && b.lateScore===a.lateScore && finalDistKey(a)===finalDistKey(b)
 }
 
+// Két azonos pontszámú játékosnál (hi a rangsorban feljebb) az ELSŐ döntő szempont,
+// ami szétválasztotta a helyezésüket – a magyarázó buborékhoz. null, ha teljesen egyenlők.
+function tieBreaker(hi, lo){
+  if (hi.exact !== lo.exact) return { label:'több pontos találat', hv:hi.exact, lv:lo.exact }
+  if (hi.wrong !== lo.wrong) return { label:'kevesebb téves tipp', hv:hi.wrong, lv:lo.wrong }
+  if (hi.lateScore !== lo.lateScore) return { label:'későbbi körökben szerzett pont', hv:hi.lateScore, lv:lo.lateScore }
+  if (finalDistKey(hi) !== finalDistKey(lo)) {
+    const f = v => v===Infinity ? 'nincs döntő-tipp' : v
+    return { label:'a döntő tippje közelebb állt', hv:f(finalDistKey(hi)), lv:f(finalDistKey(lo)) }
+  }
+  return null
+}
+
 // A teljes rangsor megosztott helyezésekkel (1-2-2-4). EGYETLEN forrás a
 // táblázathoz ÉS az Excel-exporthoz, hogy a kettő sose térjen el.
 function computeStandings() {
@@ -1197,17 +1218,49 @@ function computeStandings() {
   const counts = {}
   results.forEach(r => counts[r.rank] = (counts[r.rank]||0)+1)
   results.forEach(r => r.tied = counts[r.rank] > 1)
+
+  // Pont-holtverseny: azonos összpont, de a döntő-lánc szétválasztotta a helyezéseket.
+  // Minden érintett sornál eltároljuk, kik állnak azonos ponton és mi döntött a sorrendről.
+  let gi = 0
+  while (gi < results.length) {
+    let gj = gi
+    while (gj+1 < results.length && results[gj+1].pts === results[gi].pts) gj++
+    if (gj > gi) {
+      const group = results.slice(gi, gj+1)
+      const names = group.map(x => x.name)
+      const pairs = []
+      for (let k=0; k<group.length-1; k++) {
+        const d = tieBreaker(group[k], group[k+1])
+        if (d) pairs.push({ hi:group[k].name, lo:group[k+1].name, label:d.label, hv:d.hv, lv:d.lv })
+      }
+      group.forEach(x => { x.ptsTie = pairs.length>0; x.ptsGroupPts = group[0].pts; x.ptsGroupNames = names; x.ptsGroupPairs = pairs })
+    }
+    gi = gj+1
+  }
   return results
 }
 
 function renderStandings() {
   const tbody = document.getElementById('standings-body')
+  closeFloatPop()                    // ujrarenderkor a nyitott sor-buborek bezar
   const results = computeStandings()
 
-  tbody.innerHTML = results.map(r=>{
+  window.TIE_INFO = {}               // sor-index -> holtverseny-magyarazat HTML
+  tbody.innerHTML = results.map((r,i)=>{
     const rc = r.rank===1?'rank-1':r.rank===2?'rank-2':r.rank===3?'rank-3':''
-    return `<tr class="${r.tied?'tied-row':''}">
-      <td class="${rc}">${r.tied?'<span class="tie-eq">=</span>':''}${r.rank}${r.tied?'<span class="tie-badge">holtverseny</span>':''}</td>
+    const showInfo = r.ptsTie && !r.tied
+    let info = ''
+    if (showInfo) {
+      const pairs = r.ptsGroupPairs.map(p =>
+        `<li><b>${ffEsc(p.hi)}</b> előrébb, mint ${ffEsc(p.lo)}: ${ffEsc(p.label)} (${ffEsc(p.hv)} vs ${ffEsc(p.lv)}).</li>`).join('')
+      window.TIE_INFO[i] = `<h4>Holtverseny: ${r.ptsGroupPts} pont</h4>`
+        + `<div class="rp-muted">Azonos pontszámon: ${r.ptsGroupNames.map(ffEsc).join(', ')}. A döntő szabályok így rangsoroltak:</div>`
+        + `<ul>${pairs}</ul>`
+      info = `<button class="info-btn tie-info" aria-label="Miért ez a helyezés?" onclick="toggleTiePopover(event, this, ${i})">i</button>`
+    }
+    const cls = [r.tied?'tied-row':'', showInfo?'pts-tie-row':''].filter(Boolean).join(' ')
+    return `<tr class="${cls}">
+      <td class="${rc}">${r.tied?'<span class="tie-eq">=</span>':''}${r.rank}${r.tied?'<span class="tie-badge">holtverseny</span>':''}${info}</td>
       <td><strong>${r.name}</strong></td>
       <td class="pts-cell">${r.pts}</td><td>${r.exact}</td><td>${r.correct}</td><td>${r.total}</td>
     </tr>`
@@ -1293,19 +1346,46 @@ function toggleRulesPopover(e) {
   const open = pop.classList.toggle('open')
   btn?.setAttribute('aria-expanded', open ? 'true' : 'false')
 }
-document.addEventListener('click', e => {
+function closeRulesPopover() {
   const pop = document.getElementById('rules-popover')
   if (!pop || !pop.classList.contains('open')) return
-  if (e.target.closest('.info-wrap')) return
   pop.classList.remove('open')
   document.getElementById('rules-info-btn')?.setAttribute('aria-expanded', 'false')
+}
+
+// Sor-szintű holtverseny-buborék – a body-hoz fűzve és fix koordinátán pozicionálva,
+// hogy a táblázat overflow:hidden ne vágja le. Kattintásra vált, kívülre/Esc-re zár.
+function closeFloatPop() {
+  document.getElementById('float-pop')?.remove()
+}
+function toggleTiePopover(e, btn, idx) {
+  e.stopPropagation()
+  const existing = document.getElementById('float-pop')
+  const same = existing && existing.dataset.idx === String(idx)
+  closeFloatPop()
+  if (same) return                                    // ugyanarra a gombra: bezar
+  const pop = document.createElement('div')
+  pop.className = 'info-popover float open'
+  pop.id = 'float-pop'
+  pop.dataset.idx = String(idx)
+  pop.innerHTML = (window.TIE_INFO && window.TIE_INFO[idx]) || ''
+  document.body.appendChild(pop)
+  const rect = btn.getBoundingClientRect()
+  pop.style.top = (rect.bottom + window.scrollY + 8) + 'px'
+  let left = rect.left + window.scrollX
+  const maxLeft = window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8
+  if (left > maxLeft) left = maxLeft
+  pop.style.left = Math.max(window.scrollX + 8, left) + 'px'
+}
+document.addEventListener('click', e => {
+  const inRules = e.target.closest('.info-wrap')
+  if (!inRules) closeRulesPopover()
+  if (!e.target.closest('#float-pop') && !e.target.closest('.tie-info')) closeFloatPop()
 })
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return
-  const pop = document.getElementById('rules-popover')
-  if (!pop || !pop.classList.contains('open')) return
-  pop.classList.remove('open')
-  document.getElementById('rules-info-btn')?.setAttribute('aria-expanded', 'false')
+  closeRulesPopover()
+  closeFloatPop()
 })
 
 // ============================================================
