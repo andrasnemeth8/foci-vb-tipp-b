@@ -119,6 +119,31 @@
   .rank-2 { color: #c0c0c0; font-weight: 700; }
   .rank-3 { color: #cd7f32; font-weight: 700; }
   .pts-cell { font-weight: 900; color: var(--gold); }
+  /* Holtverseny-kiemelés a rangsorban */
+  .standings-table tr.tied-row td:first-child { border-left: 3px solid var(--gold); }
+  .standings-table tr.tied-row td { background: rgba(240,180,41,.05); }
+  .tie-eq { color: var(--muted); font-weight: 800; margin-right: 3px; }
+  .tie-badge { display: inline-block; font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gold); background: rgba(240,180,41,.16); padding: .08rem .4rem; border-radius: 10px; margin-left: .4rem; vertical-align: middle; }
+
+  /* Info gomb + szabály-buborék */
+  .sh-title { display: flex; align-items: center; gap: .55rem; }
+  .info-wrap { position: relative; display: inline-flex; }
+  .info-btn { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--gold); background: transparent; color: var(--gold); font-size: .82rem; font-weight: 800; font-style: italic; font-family: Georgia, 'Times New Roman', serif; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; padding: 0; transition: background .2s, color .2s; }
+  .info-btn:hover { background: var(--gold); color: #000; }
+  .info-popover { position: absolute; top: calc(100% + 9px); left: 0; z-index: 200; width: 310px; max-width: 78vw; background: var(--card2); border: 1px solid var(--gold); border-radius: 12px; padding: .9rem 1rem; box-shadow: 0 12px 32px rgba(0,0,0,.5); font-size: .8rem; line-height: 1.5; color: var(--text); display: none; }
+  .info-popover.open { display: block; animation: popIn .15s ease; }
+  @keyframes popIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .info-popover::before { content: ''; position: absolute; top: -6px; left: 15px; width: 11px; height: 11px; background: var(--card2); border-left: 1px solid var(--gold); border-top: 1px solid var(--gold); transform: rotate(45deg); }
+  .info-popover h4 { color: var(--gold); font-size: .8rem; margin: .7rem 0 .3rem; text-transform: uppercase; letter-spacing: .4px; }
+  .info-popover h4:first-child { margin-top: 0; }
+  .info-popover ol { margin: .2rem 0 0; padding-left: 1.15rem; }
+  .info-popover ol li { margin: .14rem 0; }
+  .info-popover .rule-line { display: flex; gap: .4rem; margin: .18rem 0; }
+  .info-popover .rp-muted { color: var(--muted); font-size: .76rem; }
+  .info-popover ol .rp-muted { display: block; margin-top: .05rem; }
+  .info-popover > .rp-muted { margin-top: .6rem; }
+  .info-popover b { color: var(--gold); }
+
   .detail-player { border: 1px solid var(--border); border-radius: 10px; margin-bottom: .75rem; overflow: hidden; }
   .detail-player-header { display: flex; justify-content: space-between; align-items: center; padding: .7rem 1rem; background: var(--card2); cursor: pointer; user-select: none; font-weight: 700; color: var(--gold); }
   .detail-player-header:hover { background: rgba(255,255,255,.05); }
@@ -447,7 +472,27 @@
   <!-- PONTSZÁMOK -->
   <div class="tab-content" id="tab-standings">
     <div class="standings-header">
-      <h2>🏆 Tippverseny állása</h2>
+      <div class="sh-title">
+        <h2>🏆 Tippverseny állása</h2>
+        <div class="info-wrap">
+          <button class="info-btn" id="rules-info-btn" aria-label="Pontozási és holtverseny-szabályok" aria-expanded="false" onclick="toggleRulesPopover(event)">i</button>
+          <div class="info-popover" id="rules-popover" role="dialog" aria-label="Pontozási és holtverseny-szabályok">
+            <h4>Pontozás</h4>
+            <div class="rule-line">🥇 <span><b>3 pont</b> – pontos eredmény (rendes játékidő)</span></div>
+            <div class="rule-line">✅ <span><b>1 pont</b> – helyes végkimenetel (H/D/V)</span></div>
+            <div class="rule-line">❌ <span><b>0 pont</b> – téves tipp</span></div>
+            <h4>Holtverseny esetén a sorrend</h4>
+            <ol>
+              <li>Összpont</li>
+              <li>Több <b>pontos találat</b> (3 pontos)</li>
+              <li>Kevesebb <b>téves</b> (0 pontos) tipp</li>
+              <li>Későbbi körökben szerzett pont <span class="rp-muted">(minél mélyebb a torna, annál többet ér)</span></li>
+              <li>A <b>döntő</b> tippjének közelsége a valós eredményhez</li>
+            </ol>
+            <div class="rp-muted">Ha minden egyenlő: <b>megosztott helyezés</b> (pl. két 2. hely).</div>
+          </div>
+        </div>
+      </div>
       <div style="font-size:.8rem;color:var(--muted);">Pontos eredmény = 3pt &nbsp;|&nbsp; Helyes végeredmény = 1pt</div>
     </div>
     <div class="standings-table">
@@ -1090,25 +1135,83 @@ async function handleSaveTip(matchId, playerName) {
 // ============================================================
 // PONTSZÁMOK
 // ============================================================
+// Kör-súlyok a "későbbi körökben szerzett pont" döntőhöz – minél mélyebb a torna,
+// annál többet ér egy ott szerzett pont (holtverseny-feloldáshoz).
+const STAGE_WEIGHT = {
+  GROUP_STAGE: 1, LAST_32: 2, LAST_16: 3,
+  QUARTER_FINALS: 4, SEMI_FINALS: 5, THIRD_PLACE: 5, FINAL: 6
+}
+
+// Egy játékos összes rangsor-releváns statisztikája egy helyen.
+function computePlayerStats(p) {
+  let pts=0, exact=0, correct=0, wrong=0, total=0, evaluated=0, lateScore=0, finalDist=null
+  state.matches.forEach(m => {
+    const tip = getSavedTip(m.id, p)
+    if (!tip) return
+    total++
+    const fs = getFinalScore(m)
+    if (!fs) return
+    evaluated++
+    const v = calcPoints(tip, fs)
+    pts += v
+    if (v===3) exact++; else if (v===1) correct++; else wrong++
+    lateScore += v * (STAGE_WEIGHT[m.stage] || 1)
+    if (m.stage === 'FINAL') {
+      const d = Math.abs(tip.home - fs.home) + Math.abs(tip.away - fs.away)
+      finalDist = finalDist===null ? d : finalDist + d
+    }
+  })
+  return { name:p, pts, exact, correct, wrong, total, evaluated, lateScore, finalDist }
+}
+
+// A döntő-tipp közelségének kulcsa: aki nem tippelt döntőt, e szempontból hátul van
+// (Infinity). Két "nem tippelt" játékos így egyenlő marad, és a NaN-t is elkerüljük.
+function finalDistKey(s){ return s.finalDist===null ? Infinity : s.finalDist }
+
+// Döntő szabályok láncban (a verseny ELŐTT kihirdetve):
+//  1) összpont  2) több pontos találat (3pt)  3) kevesebb téves (0pt) tipp
+//  4) későbbi körökben szerzett pont (súlyozva)  5) a döntő tippjének közelsége
+//  6) ha minden egyenlő: valódi holtverseny (a név csak stabil megjelenítéshez).
+function compareStandings(a, b) {
+  if (b.pts !== a.pts) return b.pts - a.pts
+  if (b.exact !== a.exact) return b.exact - a.exact
+  if (a.wrong !== b.wrong) return a.wrong - b.wrong
+  if (b.lateScore !== a.lateScore) return b.lateScore - a.lateScore
+  const fa = finalDistKey(a), fb = finalDistKey(b)
+  if (fa !== fb) return fa - fb
+  return a.name.localeCompare(b.name, 'hu')
+}
+
+// Valódi holtverseny: minden döntő szempont egyenlő (a név NEM számít).
+function isRealTie(a, b) {
+  return b.pts===a.pts && b.exact===a.exact && a.wrong===b.wrong
+      && b.lateScore===a.lateScore && finalDistKey(a)===finalDistKey(b)
+}
+
+// A teljes rangsor megosztott helyezésekkel (1-2-2-4). EGYETLEN forrás a
+// táblázathoz ÉS az Excel-exporthoz, hogy a kettő sose térjen el.
+function computeStandings() {
+  const results = state.players.map(computePlayerStats).sort(compareStandings)
+  let rank = 1
+  results.forEach((r,i)=>{ if(i>0 && !isRealTie(results[i-1], r)) rank = i+1; r.rank = rank })
+  const counts = {}
+  results.forEach(r => counts[r.rank] = (counts[r.rank]||0)+1)
+  results.forEach(r => r.tied = counts[r.rank] > 1)
+  return results
+}
+
 function renderStandings() {
   const tbody = document.getElementById('standings-body')
-  const results = state.players.map(p => {
-    let pts=0, exact=0, correct=0, total=0
-    state.matches.forEach(m => {
-      const fs = getFinalScore(m)
-      const tip = getSavedTip(m.id, p)
-      if (!tip) return
-      total++
-      if (fs) { const p_=calcPoints(tip,fs); pts+=p_; if(p_===3)exact++; if(p_===1)correct++ }
-    })
-    return { name:p, pts, exact, correct, total }
-  }).sort((a,b)=> b.pts!==a.pts ? b.pts-a.pts : b.exact!==a.exact ? b.exact-a.exact : a.name.localeCompare(b.name))
+  const results = computeStandings()
 
-  tbody.innerHTML = results.map((r,i)=>`<tr>
-    <td class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i+1}</td>
-    <td><strong>${r.name}</strong></td>
-    <td class="pts-cell">${r.pts}</td><td>${r.exact}</td><td>${r.correct}</td><td>${r.total}</td>
-  </tr>`).join('')
+  tbody.innerHTML = results.map(r=>{
+    const rc = r.rank===1?'rank-1':r.rank===2?'rank-2':r.rank===3?'rank-3':''
+    return `<tr class="${r.tied?'tied-row':''}">
+      <td class="${rc}">${r.tied?'<span class="tie-eq">=</span>':''}${r.rank}${r.tied?'<span class="tie-badge">holtverseny</span>':''}</td>
+      <td><strong>${r.name}</strong></td>
+      <td class="pts-cell">${r.pts}</td><td>${r.exact}</td><td>${r.correct}</td><td>${r.total}</td>
+    </tr>`
+  }).join('')
 
   const sortedPlayers = [...results].map(r=>r.name)
   document.getElementById('tips-detail').innerHTML = sortedPlayers.map(p => {
@@ -1142,23 +1245,14 @@ function renderStandings() {
 
 function exportToExcel() {
   const wb = XLSX.utils.book_new()
-  const sortedPlayers = state.players.slice().sort((a,b) => {
-    const pts = p => state.matches.reduce((s,m)=>{ const fs=getFinalScore(m),t=getSavedTip(m.id,p); return s+(fs&&t?calcPoints(t,fs):0) },0)
-    const pa=pts(a), pb=pts(b)
-    return pb!==pa ? pb-pa : a.localeCompare(b)
-  })
+  // Rangsor: pontosan ugyanaz a forrás, mint a képernyőn (megosztott helyezésekkel).
+  const results = computeStandings()
+  const sortedPlayers = results.map(r=>r.name)
 
   // Summary sheet
   const summaryRows = [['#','Játékos','Pont','Pontos tipp (3pt)','Helyes végeredmény (1pt)','Összes tipp']]
-  sortedPlayers.forEach((p,i) => {
-    let pts=0,exact=0,correct=0,total=0
-    state.matches.forEach(m => {
-      const fs=getFinalScore(m), tip=getSavedTip(m.id,p)
-      if (!tip) return
-      total++
-      if (fs) { const v=calcPoints(tip,fs); pts+=v; if(v===3)exact++; if(v===1)correct++ }
-    })
-    summaryRows.push([i+1, p, pts, exact, correct, total])
+  results.forEach(r => {
+    summaryRows.push([r.tied?`=${r.rank}`:r.rank, r.name, r.pts, r.exact, r.correct, r.total])
   })
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Összesítő')
 
@@ -1189,6 +1283,30 @@ function toggleDetail(header) {
   header.classList.toggle('open')
   header.nextElementSibling?.classList.toggle('open')
 }
+
+// Szabály-buborék az ⓘ gombnál – kattintásra/érintésre nyílik, kívülre kattintva
+// vagy Esc-re zár. (Nincs hover-függés, hogy mobilon is működjön.)
+function toggleRulesPopover(e) {
+  e.stopPropagation()
+  const pop = document.getElementById('rules-popover')
+  const btn = document.getElementById('rules-info-btn')
+  const open = pop.classList.toggle('open')
+  btn?.setAttribute('aria-expanded', open ? 'true' : 'false')
+}
+document.addEventListener('click', e => {
+  const pop = document.getElementById('rules-popover')
+  if (!pop || !pop.classList.contains('open')) return
+  if (e.target.closest('.info-wrap')) return
+  pop.classList.remove('open')
+  document.getElementById('rules-info-btn')?.setAttribute('aria-expanded', 'false')
+})
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return
+  const pop = document.getElementById('rules-popover')
+  if (!pop || !pop.classList.contains('open')) return
+  pop.classList.remove('open')
+  document.getElementById('rules-info-btn')?.setAttribute('aria-expanded', 'false')
+})
 
 // ============================================================
 // FUN FACTS
