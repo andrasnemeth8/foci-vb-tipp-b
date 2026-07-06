@@ -133,7 +133,7 @@
   .info-popover { position: absolute; top: calc(100% + 9px); left: 0; z-index: 200; width: 310px; max-width: 78vw; background: var(--card2); border: 1px solid var(--gold); border-radius: 12px; padding: .9rem 1rem; box-shadow: 0 12px 32px rgba(0,0,0,.5); font-size: .8rem; line-height: 1.5; color: var(--text); display: none; }
   .info-popover.open { display: block; animation: popIn .15s ease; }
   @keyframes popIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-  .info-popover::before { content: ''; position: absolute; top: -6px; left: 15px; width: 11px; height: 11px; background: var(--card2); border-left: 1px solid var(--gold); border-top: 1px solid var(--gold); transform: rotate(45deg); }
+  .info-popover::before { content: ''; position: absolute; top: -6px; left: var(--arrow-left, 15px); width: 11px; height: 11px; background: var(--card2); border-left: 1px solid var(--gold); border-top: 1px solid var(--gold); transform: rotate(45deg); }
   .info-popover h4 { color: var(--gold); font-size: .8rem; margin: .7rem 0 .3rem; text-transform: uppercase; letter-spacing: .4px; }
   .info-popover h4:first-child { margin-top: 0; }
   .info-popover ol { margin: .2rem 0 0; padding-left: 1.15rem; }
@@ -1345,6 +1345,25 @@ function toggleRulesPopover(e) {
   const btn = document.getElementById('rules-info-btn')
   const open = pop.classList.toggle('open')
   btn?.setAttribute('aria-expanded', open ? 'true' : 'false')
+  if (open) positionRulesPopover(pop, btn)
+}
+// A buborek beforditasa a nezetbe: ha a jobb szele kilogna (kicsi kijelzon a gomb
+// a kepernyo kozepen van), balra toljuk annyival, hogy elferjen; a nyilat a gomb ala igazitjuk.
+function positionRulesPopover(pop, btn) {
+  const margin = 8
+  const vw = document.documentElement.clientWidth
+  pop.style.left = '0px'
+  let rect = pop.getBoundingClientRect()
+  let shift = rect.right > vw - margin ? rect.right - (vw - margin) : 0
+  pop.style.left = (-shift) + 'px'
+  rect = pop.getBoundingClientRect()
+  if (rect.left < margin) { pop.style.left = (-shift + (margin - rect.left)) + 'px'; rect = pop.getBoundingClientRect() }
+  if (btn) {
+    const b = btn.getBoundingClientRect()
+    let al = b.left + b.width/2 - rect.left - 5.5
+    al = Math.max(10, Math.min(al, rect.width - 20))
+    pop.style.setProperty('--arrow-left', al + 'px')
+  }
 }
 function closeRulesPopover() {
   const pop = document.getElementById('rules-popover')
