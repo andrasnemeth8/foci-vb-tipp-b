@@ -1539,22 +1539,42 @@ function ffBuildAwards(F){
   return cards
 }
 
+// Relatív jellem-címke: minden játékos a SAJÁT legkiugróbb mutatója alapján kap címkét,
+// a mezőnyhöz normalizálva (0..1). Így nem lesz mindenkinél ugyanaz – pl. a "Sorozatgyilkos"
+// csak a tényleges sorozat-vezetőhöz kerül. Aki egyetlen mutatóban sem kiugró: "Rutinos".
+function ffAssignBadges(withTips){
+  const traits = [
+    { key:'Jós',            v:s=> s.exactRate },                    // legpontosabb (telitalálat-arány)
+    { key:'Sorozatgyilkos', v:s=> s.streak },                      // leghosszabb pontszerző sorozat
+    { key:'Stratéga',       v:s=> s.tips ? s.correct/s.tips : 0 }, // legjobb kimenetel-arány (H/D/V)
+    { key:'Kockáztató',     v:s=> s.avgGoals },                    // legtöbb megtippelt gól
+    { key:'Óvatos',         v:s=> -s.avgGoals },                   // legkevesebb megtippelt gól
+    { key:'Pechvogel',      v:s=> s.exact===0 ? s.offByOne : 0 },  // sokszor 1 gólra a telitalálattól
+  ]
+  const cols = traits.map(t => {
+    const vals = withTips.map(t.v)
+    const min = Math.min(...vals), max = Math.max(...vals), range = max - min
+    return withTips.map(s => range>0 ? (t.v(s)-min)/range : 0)
+  })
+  const badge = {}
+  withTips.forEach((s,i) => {
+    let bi=-1, bv=0
+    traits.forEach((t,ti)=>{ if (cols[ti][i] > bv){ bv=cols[ti][i]; bi=ti } })
+    badge[s.name] = bi>=0 ? traits[bi].key : 'Rutinos'
+  })
+  return badge
+}
+
 function ffBuildProfiles(F){
   // sorrend: aktuális pontszám szerint csökkenő
   const order = Object.values(F.stats).slice().sort((a,b)=> b.pts-a.pts || b.exact-a.exact || a.name.localeCompare(b.name))
+  const badges = ffAssignBadges(order.filter(s=>s.tips>0))
   return order.map(s => {
     if (!s.tips) return `<div class="ff-profile">
       <div class="ff-profile-head"><span class="ff-profile-name">${ffEsc(s.name)}</span></div>
       <div class="ff-stat-row"><span class="ff-stat-label">Még nincs kiértékelt tippje</span></div>
     </div>`
-    // jellem-címke
-    let badge = 'Rutinos'
-    const avg = s.avgGoals
-    if (s.exactRate>=0.34) badge = 'Jós'
-    else if (s.streak>=3) badge = 'Sorozatgyilkos'
-    else if (avg>=3.2) badge = 'Kockáztató'
-    else if (avg>0 && avg<=1.6) badge = 'Óvatos'
-    else if (s.offByOne>=2 && s.exact===0) badge = 'Pechvogel'
+    const badge = badges[s.name] || 'Rutinos'
     const best = s.bestHit ? (()=>{ const t=ffTeams(s.bestHit.mi.m); return `${s.bestHit.mi.fs.home}–${s.bestHit.mi.fs.away} (${ffEsc(t.h)}–${ffEsc(t.a)})` })() : '–'
     return `<div class="ff-profile">
       <div class="ff-profile-head">
@@ -1562,6 +1582,7 @@ function ffBuildProfiles(F){
         <span class="ff-badge">${badge}</span>
       </div>
       <div class="ff-stat-row"><span class="ff-stat-label">Pontos találat</span><span class="ff-stat-val">${s.exact}/${s.tips} (${Math.round(s.exactRate*100)}%)</span></div>
+      <div class="ff-stat-row"><span class="ff-stat-label">Helyes végkimenetel</span><span class="ff-stat-val">${s.correct}/${s.tips} (${Math.round((s.correct/s.tips)*100)}%)</span></div>
       <div class="ff-stat-row"><span class="ff-stat-label">Leghosszabb sorozat</span><span class="ff-stat-val">${s.streak} meccs</span></div>
       <div class="ff-stat-row"><span class="ff-stat-label">Kedvenc eredmény</span><span class="ff-stat-val">${s.favScore?`${s.favScore} (${s.favScoreN}×)`:'–'}</span></div>
       <div class="ff-stat-row"><span class="ff-stat-label">Legjobb találat</span><span class="ff-stat-val">${best}</span></div>
